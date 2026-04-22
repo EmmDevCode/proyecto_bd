@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
 from frontend.components.elementos_ui import DataTable
+from frontend.components.elementos_ui import BotonGuardar, BotonEditar, BotonBaja, BotonNuevo
 
 class FormularioAlmacen(QDialog):
     """Modal para Alta y Edición de Almacenes"""
@@ -35,8 +36,7 @@ class FormularioAlmacen(QDialog):
         layout.addRow("Responsable:", self.input_responsable)
 
         btn_layout = QHBoxLayout()
-        btn_guardar = QPushButton("💾 Guardar Almacén")
-        btn_guardar.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
+        btn_guardar = BotonGuardar("Guardar Almacen")
         btn_guardar.clicked.connect(self.guardar)
         
         btn_cancelar = QPushButton("Cancelar")
@@ -91,7 +91,7 @@ class ModuloAlmacenes(QWidget):
         header.addWidget(lbl_titulo)
         header.addStretch()
 
-        self.btn_nuevo = QPushButton("+ Registrar Almacén")
+        self.btn_nuevo = BotonNuevo("Registrar Almacén")
         self.btn_nuevo.setStyleSheet("background-color: #27ae60; color: white; padding: 10px 20px;")
         self.btn_nuevo.clicked.connect(lambda: self.abrir_formulario())
         header.addWidget(self.btn_nuevo)
@@ -114,8 +114,11 @@ class ModuloAlmacenes(QWidget):
             btns = QWidget()
             ly = QHBoxLayout(btns); ly.setContentsMargins(0,0,0,0)
             
-            btn_edit = QPushButton("✏️"); btn_edit.clicked.connect(lambda _, id_a=fila[0]: self.abrir_formulario(id_a))
-            btn_del = QPushButton("🗑️"); btn_del.clicked.connect(lambda _, id_a=fila[0]: self.eliminar(id_a))
+            btn_edit = BotonEditar()  # Ya tiene el icono, el color y el hover
+            btn_edit.clicked.connect(lambda _, id_a=fila[0]: self.abrir_formulario(id_a))
+
+            btn_del = BotonBaja()     # Ya tiene el icono de basura y es rojo
+            btn_del.clicked.connect(lambda _, id_a=fila[0]: self.eliminar(id_a))
             
             ly.addWidget(btn_edit); ly.addWidget(btn_del)
             self.tabla.setCellWidget(i, 4, btns)

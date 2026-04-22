@@ -1,10 +1,11 @@
 # frontend/views/modulo_empleados.py
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QTableWidgetItem,
+                             QLineEdit, QTableWidgetItem,
                              QDialog, QFormLayout, QComboBox)
+from PyQt6.QtCore import Qt
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
-from frontend.components.elementos_ui import DataTable
+from frontend.components.elementos_ui import DataTable, BotonNuevo, BotonGuardar, BotonEditar, BadgeEstado, BotonBaja
 
 class FormularioEmpleado(QDialog):
     def __init__(self, db, empleado_id=None, parent=None):
@@ -33,7 +34,7 @@ class FormularioEmpleado(QDialog):
         layout.addRow("PIN de Seguridad:", self.input_pin)
         layout.addRow("Rol del Sistema:", self.combo_rol)
 
-        btn_guardar = QPushButton("💾 Guardar Empleado")
+        btn_guardar = BotonGuardar("Guardar Empleado")
         btn_guardar.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
         btn_guardar.clicked.connect(self.guardar)
         layout.addRow(btn_guardar)
@@ -76,7 +77,7 @@ class ModuloEmpleados(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
         header = QHBoxLayout()
         lbl = QLabel("GESTIÓN DE PERSONAL"); lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        btn_nuevo = QPushButton("+ Alta de Empleado"); btn_nuevo.setStyleSheet("background-color: #8e44ad; color: white; padding: 10px;")
+        btn_nuevo = BotonNuevo("Alta de Empleado"); btn_nuevo.setStyleSheet("background-color: #8e44ad; color: white; padding: 10px;")
         btn_nuevo.clicked.connect(lambda: self.abrir_formulario())
         header.addWidget(lbl); header.addStretch(); header.addWidget(btn_nuevo)
         layout.addLayout(header)
@@ -90,13 +91,33 @@ class ModuloEmpleados(QWidget):
         self.tabla.setRowCount(0)
         for i, fila in enumerate(res or []):
             self.tabla.insertRow(i)
-            for j in range(4): self.tabla.setItem(i, j, QTableWidgetItem(str(fila[j])))
-            self.tabla.setItem(i, 4, QTableWidgetItem("Activo ✅"))
             
-            btns = QWidget(); ly = QHBoxLayout(btns); ly.setContentsMargins(0,0,0,0)
-            btn_edit = QPushButton("✏️"); btn_edit.clicked.connect(lambda _, id_e=fila[0]: self.abrir_formulario(id_e))
-            btn_del = QPushButton("🗑️"); btn_del.clicked.connect(lambda _, id_e=fila[0]: self.eliminar(id_e))
-            ly.addWidget(btn_edit); ly.addWidget(btn_del)
+            # Llenar las primeras 4 columnas con texto normal (ID, Nombre, Usuario, Rol)
+            for j in range(4): 
+                self.tabla.setItem(i, j, QTableWidgetItem(str(fila[j])))
+            
+            # Columna 4: Estatus (Usamos nuestro nuevo Badge)
+            badge = BadgeEstado(activo=True)
+            contenedor_badge = QWidget()
+            ly_badge = QHBoxLayout(contenedor_badge)
+            ly_badge.setContentsMargins(0, 0, 0, 0)
+            ly_badge.setAlignment(Qt.AlignmentFlag.AlignCenter) # Lo centramos
+            ly_badge.addWidget(badge)
+            self.tabla.setCellWidget(i, 4, contenedor_badge)
+            
+            # Columna 5: Acciones (Tus botones reutilizables)
+            btns = QWidget()
+            ly = QHBoxLayout(btns)
+            ly.setContentsMargins(0, 0, 0, 0)
+            
+            btn_edit = BotonEditar("Editar")
+            btn_edit.clicked.connect(lambda _, id_e=fila[0]: self.abrir_formulario(id_e))
+            
+            btn_del = BotonBaja("Eliminar")
+            btn_del.clicked.connect(lambda _, id_e=fila[0]: self.eliminar(id_e))
+            
+            ly.addWidget(btn_edit)
+            ly.addWidget(btn_del)
             self.tabla.setCellWidget(i, 5, btns)
 
     def abrir_formulario(self, id_e=None):

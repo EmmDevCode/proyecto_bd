@@ -5,7 +5,8 @@ from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 
 class MenuColapsable(QWidget):
     """Componente personalizado para un menú con animación de acordeón"""
-    def __init__(self, titulo, parent=None):
+    # ---> AÑADIDO: Recibe el parámetro icono <---
+    def __init__(self, titulo, icono=None, parent=None):
         super().__init__(parent)
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -15,6 +16,11 @@ class MenuColapsable(QWidget):
         
         # Botón toggle
         self.btn_toggle = QPushButton(f"▶  {self.titulo_base}")
+        
+        # ---> AÑADIDO: Si mandaste un icono desde pantalla_admin, se lo pone <---
+        if icono:
+            self.btn_toggle.setIcon(icono)
+            
         self.btn_toggle.setStyleSheet("""
             QPushButton {
                 color: #e2e8f0; 
@@ -165,10 +171,8 @@ class Sidebar(QFrame):
 
     def construir_menu(self, config_menu):
         """Reconstruye el menú según la configuración proporcionada"""
-        # Limpiar registro de botones
         self.botones_registro.clear()
         
-        # Limpiar layout scroll
         while self.layout_scroll.count():
             child = self.layout_scroll.takeAt(0)
             if child.widget():
@@ -176,13 +180,18 @@ class Sidebar(QFrame):
             elif child.layout():
                 self.limpiar_layout(child.layout())
         
-        # Verificar si hay categorías colapsables
-        tiene_categorias = any(isinstance(opciones, dict) for opciones in config_menu.values())
-        
-        for categoria, opciones in config_menu.items():
+        # ---> AÑADIDO: Lógica para desempaquetar la tupla (icono, texto) <---
+        for clave, opciones in config_menu.items():
+            
+            # 1. Separamos si la clave es una tupla (icono, texto) o solo texto
+            if isinstance(clave, tuple):
+                icono_obj, titulo = clave
+            else:
+                icono_obj, titulo = None, clave
+
             if isinstance(opciones, dict):
-                # Es un menú con animación
-                menu_animado = MenuColapsable(categoria)
+                # Pasamos el icono al submenú
+                menu_animado = MenuColapsable(titulo, icono=icono_obj) 
                 for nombre, funcion in opciones.items():
                     btn = self.crear_boton(nombre, funcion, es_sub=True)
                     menu_animado.agregar_boton(btn)
@@ -190,12 +199,11 @@ class Sidebar(QFrame):
                 menu_animado.inicializar_altura()
                 self.layout_scroll.addWidget(menu_animado)
             else:
-                # Es un botón directo
-                btn = self.crear_boton(categoria, opciones, es_sub=False)
+                # Pasamos el icono al botón normal
+                btn = self.crear_boton(titulo, opciones, es_sub=False, icono=icono_obj)
                 self.layout_scroll.addWidget(btn)
-                self.botones_registro[categoria] = btn
+                self.botones_registro[titulo] = btn
         
-        # Solo agregar stretch (el separador ya no es necesario)
         self.layout_scroll.addStretch()
 
     def limpiar_layout(self, layout):
@@ -207,11 +215,17 @@ class Sidebar(QFrame):
             elif child.layout():
                 self.limpiar_layout(child.layout())
 
-    def crear_boton(self, texto, funcion, es_sub):
+    # ---> AÑADIDO: El método crear_boton ahora recibe icono=None <---
+    def crear_boton(self, texto, funcion, es_sub, icono=None):
         """Crea un botón con el estilo apropiado"""
+        
+        btn = QPushButton(f"  {texto}" if es_sub else f"  {texto}")
+        
+        # Le aplicamos el icono si existe
+        if icono:
+            btn.setIcon(icono)
+            
         if es_sub:
-            # Botón de submenú (dentro de categoría colapsable)
-            btn = QPushButton(f"  {texto}")
             btn.setStyleSheet("""
                 QPushButton {
                     color: #a0aec0; 
@@ -229,8 +243,6 @@ class Sidebar(QFrame):
                 }
             """)
         else:
-            # Botón normal (sin comportamiento de acordeón)
-            btn = QPushButton(texto)
             btn.setStyleSheet("""
                 QPushButton {
                     color: #e2e8f0; 
@@ -263,9 +275,7 @@ class Sidebar(QFrame):
     def resaltar_boton(self, nombre_activo):
         """Cambia el estilo del botón seleccionado"""
         for nombre, btn in self.botones_registro.items():
-            # Restaurar estilo base
             if nombre == nombre_activo:
-                # Estilo para botón activo
                 btn.setStyleSheet("""
                     QPushButton {
                         background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -287,7 +297,6 @@ class Sidebar(QFrame):
                     }
                 """)
             else:
-                # Restaurar estilo normal
                 btn.setStyleSheet("""
                     QPushButton {
                         color: #e2e8f0; 

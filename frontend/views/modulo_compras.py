@@ -7,6 +7,7 @@ from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
 from frontend.components.elementos_ui import PrimaryButton, DataTable
 from frontend.components.buscador import GenericSearchModal
+from frontend.components.elementos_ui import BotonNuevo, DataTable, BotonConfirmar, BotonBuscar
 
 class VentanaNuevaCompra(QDialog):
     """Formulario para registrar una nueva factura de proveedor"""
@@ -43,7 +44,7 @@ class VentanaNuevaCompra(QDialog):
         self.input_proveedor.setReadOnly(True)
         self.input_proveedor.setPlaceholderText("Seleccione un proveedor...")
         
-        btn_buscar_prov = QPushButton("🔍 Buscar")
+        btn_buscar_prov = BotonBuscar("Buscar")
         btn_buscar_prov.clicked.connect(self.abrir_buscador_proveedor)
         ly_prov.addWidget(self.input_proveedor)
         ly_prov.addWidget(btn_buscar_prov)
@@ -70,7 +71,7 @@ class VentanaNuevaCompra(QDialog):
         self.input_producto.setReadOnly(True)
         self.input_producto.setPlaceholderText("Ningún producto seleccionado...")
         
-        btn_buscar_prod = QPushButton("🔍 Buscar Producto")
+        btn_buscar_prod = BotonBuscar("Buscar Producto")
         btn_buscar_prod.clicked.connect(self.abrir_buscador_producto)
         ly_prod.addWidget(self.input_producto)
         ly_prod.addWidget(btn_buscar_prod)
@@ -118,8 +119,7 @@ class VentanaNuevaCompra(QDialog):
         panel_der.addWidget(self.lbl_iva, alignment=Qt.AlignmentFlag.AlignRight)
         panel_der.addWidget(self.lbl_total, alignment=Qt.AlignmentFlag.AlignRight)
 
-        btn_confirmar = PrimaryButton("📦 CONFIRMAR ABASTECIMIENTO")
-        btn_confirmar.setStyleSheet("background-color: #27ae60; padding: 15px; font-size: 14px;")
+        btn_confirmar = BotonConfirmar("CONFIRMAR ABASTECIMIENTO")
         btn_confirmar.clicked.connect(self.procesar_compra)
         panel_der.addWidget(btn_confirmar)
 
@@ -259,7 +259,7 @@ class ModuloCompras(QWidget):
         lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
         header.addWidget(lbl)
         
-        btn_nueva = QPushButton("+ Registrar Factura Compra")
+        btn_nueva = BotonNuevo("Registrar Factura Compra")
         btn_nueva.setStyleSheet("background-color: #27ae60; color: white; padding: 10px;")
         btn_nueva.clicked.connect(self.abrir_formulario)
         header.addWidget(btn_nueva)

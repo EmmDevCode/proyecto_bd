@@ -6,6 +6,7 @@ from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtWebSockets import QWebSocket
 import json
 import datetime
+import qtawesome as qta
 
 # Componentes reutilizables del proyecto
 from frontend.components.elementos_ui import FormInput, PrimaryButton
@@ -267,7 +268,7 @@ class CreateQuotationWindow(QDialog):
 
     def abrir_buscador_avanzado(self, texto):
         def query_func(t):
-            q = "SELECT codigo, nombre, precio_venta, id_producto FROM productos WHERE estatus=T AND (codigo ILIKE %s OR nombre ILIKE %s) LIMIT 50"
+            q = "SELECT codigo, nombre, precio_venta, id_producto FROM productos WHERE estatus=TRUE AND (codigo ILIKE %s OR nombre ILIKE %s) LIMIT 50"
             return self.db.fetch_all(q, (f"%{t}%", f"%{t}%"))
 
         modal = GenericSearchModal("Buscar Producto", "Escribe para buscar...", ["CODIGO", "NOMBRE", "PRECIO", "ID"], query_func, self)

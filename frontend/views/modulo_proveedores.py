@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QDialog, QFormLayout)
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
-from frontend.components.elementos_ui import DataTable
+from frontend.components.elementos_ui import DataTable, BotonGuardar, BotonEditar, BotonNuevo, BotonBaja
 
 class FormularioProveedor(QDialog):
     def __init__(self, db, proveedor_id=None, parent=None):
@@ -26,7 +26,7 @@ class FormularioProveedor(QDialog):
         layout.addRow("RFC:", self.input_rfc)
         layout.addRow("Teléfono:", self.input_telefono)
         layout.addRow("Persona Contacto:", self.input_contacto)
-        btn_guardar = QPushButton("💾 Guardar")
+        btn_guardar = BotonGuardar("Guardar")
         btn_guardar.setStyleSheet("background-color: #f39c12; color: white; padding: 10px;")
         btn_guardar.clicked.connect(self.guardar)
         layout.addRow(btn_guardar)
@@ -61,7 +61,7 @@ class ModuloProveedores(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
         header = QHBoxLayout()
         lbl = QLabel("DIRECTORIO DE PROVEEDORES"); lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        btn_nuevo = QPushButton("+ Registrar Proveedor"); btn_nuevo.setStyleSheet("background-color: #f39c12; color: white; padding: 10px;")
+        btn_nuevo = BotonNuevo("Registrar Proveedor"); btn_nuevo.setStyleSheet("background-color: #f39c12; color: white; padding: 10px;")
         btn_nuevo.clicked.connect(lambda: self.abrir_formulario())
         header.addWidget(lbl); header.addStretch(); header.addWidget(btn_nuevo)
         layout.addLayout(header)
@@ -80,11 +80,11 @@ class ModuloProveedores(QWidget):
             ly = QHBoxLayout(btns)
             ly.setContentsMargins(0, 0, 0, 0)
             
-            btn_edit = QPushButton("✏️ Editar")
+            btn_edit = BotonEditar("Editar")
             btn_edit.setStyleSheet("background-color: #f39c12; color: white;")
             btn_edit.clicked.connect(lambda _, id_p=fila[0]: self.abrir_formulario(id_p))
             
-            btn_del = QPushButton("🗑️ Baja")
+            btn_del = BotonBaja("Baja")
             btn_del.setStyleSheet("background-color: #e74c3c; color: white;")
             btn_del.clicked.connect(lambda _, id_p=fila[0]: self.eliminar(id_p))
             

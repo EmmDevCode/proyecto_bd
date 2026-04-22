@@ -1,11 +1,13 @@
 # frontend/components/modulo_consulta.py
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAbstractItemView, QTableWidgetItem, QMenu
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAbstractItemView, QTableWidgetItem, QMenu, QLineEdit
 from PyQt6.QtCore import Qt
+import qtawesome as qta
 import datetime
 
-from frontend.components.elementos_ui import FormInput, DataTable
+from frontend.components.elementos_ui import FormInput, DataTable, BotonConfirmar, BotonVerDetalles, BotonImprimir, BotonBuscar
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
+
 
 class ModuloConsulta(QWidget):
     """
@@ -28,13 +30,22 @@ class ModuloConsulta(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         # 1. Cabecera y Buscador
+        # 1. Cabecera y Buscador
         header = QHBoxLayout()
         self.lbl_titulo = QLabel(f"<b>{titulo}</b>")
         self.lbl_titulo.setStyleSheet("font-size: 18px; color: #2c3e50;")
         
-        self.search_input = FormInput("🔍 Filtrar por folio o cliente...")
+        # --- AQUÍ ARREGLAMOS EL BUSCADOR ---
+        self.search_input = QLineEdit() # Debe ser una caja de texto, no un botón
+        self.search_input.setPlaceholderText("Filtrar por folio o cliente...")
         self.search_input.setFixedWidth(350)
+        self.search_input.setStyleSheet("padding: 8px 8px 8px 5px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px;")
+        
+        # Le inyectamos el icono de QtAwesome directamente adentro de la caja de texto
+        self.search_input.addAction(qta.icon('fa5s.search', color='#7f8c8d'), QLineEdit.ActionPosition.LeadingPosition)
+        
         self.search_input.textChanged.connect(self.filtrar_tabla)
+        # -----------------------------------
 
         header.addWidget(self.lbl_titulo)
         header.addStretch()
@@ -69,6 +80,8 @@ class ModuloConsulta(QWidget):
                     self.tabla.setItem(i, j, item)
         except Exception as e:
             print(f"Error cargando tabla: {e}")
+        
+        
 
     def filtrar_tabla(self, texto):
         for i in range(self.tabla.rowCount()):
@@ -96,7 +109,7 @@ class ModuloConsulta(QWidget):
         self.action_callback(folio)
 
     def mostrar_menu_contextual(self, posicion):
-        """Crea un menú de clic derecho dinámico"""
+        """Crea un menú de clic derecho dinámico con iconos vectoriales"""
         item = self.tabla.itemAt(posicion)
         if not item: return
 
@@ -104,11 +117,26 @@ class ModuloConsulta(QWidget):
         folio = self.tabla.item(row, 0).text()
 
         menu = QMenu()
-        menu.setStyleSheet("QMenu { background-color: white; border: 1px solid #bdc3c7; } QMenu::item { padding: 8px 20px; } QMenu::item:selected { background-color: #3498db; color: white; }")
+        menu.setStyleSheet("""
+            QMenu { background-color: white; border: 1px solid #bdc3c7; border-radius: 4px; } 
+            QMenu::item { padding: 8px 30px 8px 20px; font-size: 13px; } 
+            QMenu::item:selected { background-color: #3498db; color: white; }
+        """)
 
         for nombre_accion, funcion_accion in self.menu_opciones.items():
-            accion = menu.addAction(nombre_accion)
-            # Usamos lambda para pasarle el folio a la función que la llamó
+            
+            # Asignar icono dinámicamente según el nombre de la acción
+            if "Cobrar" in nombre_accion:
+                icono = qta.icon('fa5s.cash-register', color='#27ae60') # Verde
+            elif "Detalles" in nombre_accion:
+                icono = qta.icon('fa5s.eye', color='#3498db') # Azul
+            elif "Reimprimir" in nombre_accion:
+                icono = qta.icon('fa5s.print', color='#8e44ad') # Morado
+            else:
+                icono = qta.icon('fa5s.chevron-right', color='#7f8c8d') # Gris por defecto
+
+            # Crear la acción con el icono inyectado
+            accion = menu.addAction(icono, nombre_accion)
             accion.triggered.connect(lambda checked, f=folio, func=funcion_accion: func(f))
 
         menu.exec(self.tabla.viewport().mapToGlobal(posicion))

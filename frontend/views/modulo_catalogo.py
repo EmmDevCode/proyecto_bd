@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 from PyQt6.QtCore import Qt
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
+from frontend.components.elementos_ui import BotonGuardar, BotonEditar, BotonBaja, BotonNuevo
+
 
 class FormularioProducto(QDialog):
     """Modal para Alta y Edición de Productos"""
@@ -41,7 +43,7 @@ class FormularioProducto(QDialog):
         self.cargar_proveedores()
 
         # Añadir al formulario
-        layout.addRow("Código de Barras:", self.input_codigo)
+        layout.addRow("Código de Articulo:", self.input_codigo)
         layout.addRow("Nombre / Descripción:", self.input_nombre)
         layout.addRow("Precio Compra ($):", self.spin_compra)
         layout.addRow("Precio Venta ($):", self.spin_venta)
@@ -52,7 +54,7 @@ class FormularioProducto(QDialog):
 
         # Botones
         btn_layout = QHBoxLayout()
-        btn_guardar = QPushButton("💾 Guardar")
+        btn_guardar = BotonGuardar("Guardar")
         btn_guardar.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
         btn_guardar.clicked.connect(self.guardar)
         
@@ -133,7 +135,7 @@ class ModuloCatalogo(QWidget):
         header_layout.addWidget(lbl_titulo)
         header_layout.addStretch()
 
-        self.btn_nuevo = QPushButton("+ Nuevo Producto")
+        self.btn_nuevo = BotonNuevo("Nuevo Producto")
         self.btn_nuevo.setStyleSheet("background-color: #27ae60; color: white; font-weight: bold; padding: 10px 20px;")
         self.btn_nuevo.clicked.connect(self.abrir_formulario)
         header_layout.addWidget(self.btn_nuevo)
@@ -181,11 +183,11 @@ class ModuloCatalogo(QWidget):
                 ly = QHBoxLayout(btns)
                 ly.setContentsMargins(0, 0, 0, 0)
                 
-                btn_edit = QPushButton("✏️ Editar")
+                btn_edit = BotonEditar("Editar")
                 btn_edit.setStyleSheet("background-color: #f39c12; color: white;")
                 btn_edit.clicked.connect(lambda _, id_prod=fila[0]: self.abrir_formulario(id_prod))
                 
-                btn_baja = QPushButton("🗑️ Baja")
+                btn_baja = BotonBaja("Baja")
                 btn_baja.setStyleSheet("background-color: #e74c3c; color: white;")
                 btn_baja.clicked.connect(lambda _, id_prod=fila[0]: self.dar_de_baja(id_prod))
                 

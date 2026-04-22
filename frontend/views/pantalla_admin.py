@@ -1,6 +1,7 @@
 # frontend/views/pantalla_admin.py
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QStackedWidget, QLabel
 from PyQt6.QtCore import Qt
+import qtawesome as qta
 
 from frontend.components.menu_lateral import Sidebar
 from frontend.components.modulo_consulta import ModuloConsulta
@@ -34,33 +35,39 @@ class AdminWindow(QWidget):
         # 1. EL ÚNICO MENÚ DEL SISTEMA (Control Remoto)
         # ==========================================
         config_menu = {
-            "🏠 Dashboard": lambda: self.cambiar_vista_admin(0),
-            "🛒 VENTAS": {
+            (qta.icon('fa5s.home', color='#bdc3c7'), "Dashboard"): lambda: self.cambiar_vista_admin(0),
+            
+            (qta.icon('fa5s.shopping-cart', color='#bdc3c7'), "VENTAS"): {
                 "Órdenes de Venta": lambda: self.navegar_hijo(1, "Órdenes de Venta"), 
                 "Cotizaciones": lambda: self.navegar_hijo(1, "Cotizaciones")
             },
-            "💵 CAJA": {
+            
+            (qta.icon('fa5s.cash-register', color='#bdc3c7'), "CAJA"): {
                 "Fila de Cobro": lambda: self.navegar_hijo(2, "Órdenes Pendientes"),
                 "Historial del Día": lambda: self.navegar_hijo(2, "Ventas Cobradas")
             },
-            "📊 AUDITORÍA": {
+            
+            (qta.icon('fa5s.clipboard-list', color='#bdc3c7'), "AUDITORÍA"): {
                 "Cortes de Caja Globales": lambda: self.cambiar_vista_admin(3),
-                "Métricas y Reportes": lambda: self.cambiar_vista_admin(4) # <-- Abre el índice 4
+                "Métricas y Reportes": lambda: self.cambiar_vista_admin(4)
             },
-            "📦 INVENTARIO Y COMPRAS": {
+            
+            (qta.icon('fa5s.boxes', color='#bdc3c7'), "INVENTARIO Y COMPRAS"): {
                 "Catálogo de Productos": lambda: self.cambiar_vista_admin(5), 
                 "Historial de Compras": lambda: self.cambiar_vista_admin(6),
                 "Gestión de Almacenes": lambda: self.cambiar_vista_admin(7)
             },
-            "👥 DIRECTORIOS Y PERSONAL": {
+            
+            (qta.icon('fa5s.users', color='#bdc3c7'), "DIRECTORIOS Y PERSONAL"): {
                 "Gestión de Clientes": lambda: self.cambiar_vista_admin(8),
                 "Gestión de Proveedores": lambda: self.cambiar_vista_admin(9),
                 "Gestión de Personal": lambda: self.cambiar_vista_admin(10)
             },
-            "Cerrar Sesión": self.close # <-- Fuera de los submenús
+            
+            (qta.icon('fa5s.sign-out-alt', color='#bdc3c7'), "Cerrar Sesión"): self.close
         }
 
-        self.sidebar = Sidebar("ADMINISTRADOR", config_menu)
+        self.sidebar = Sidebar("FERROSOFT ADMIN", config_menu)
         main_layout.addWidget(self.sidebar)
 
         # ==========================================

@@ -37,7 +37,6 @@ class PosWindow(QWidget):
         opciones_menu = {
             "Órdenes de Venta": lambda: self.cambiar_vista("Órdenes de Venta"),
             "Cotizaciones": lambda: self.cambiar_vista("Cotizaciones"),
-            "Directorio Clientes": lambda: print("Abriendo directorio..."),
             "Cerrar Sesión": self.close
         }
         

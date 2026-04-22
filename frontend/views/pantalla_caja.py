@@ -13,6 +13,7 @@ from frontend.views.modulo_corte import ModuloCorte
 from frontend.views.apertura_caja import AperturaCajaModal
 from backend.bd_conexion import DatabaseConnection
 
+
 # frontend/views/pantalla_caja.py
 
 class CajaWindow(QWidget):
@@ -73,7 +74,7 @@ class CajaWindow(QWidget):
             ORDER BY v.hora ASC
         """
         menu_pendientes = {
-            "💵 Cobrar Orden": self.abrir_ventana_cobro,
+            "Cobrar Orden": self.abrir_ventana_cobro, # <--- Sin emoji
         }
 
 
@@ -94,8 +95,8 @@ class CajaWindow(QWidget):
             ORDER BY v.hora DESC
         """
         menu_cobradas = {
-            "👁️ Ver Detalle Completo": self.ver_detalle_cobrada,
-            "🖨️ Reimprimir Ticket": self.reimprimir_ticket
+            "Ver Detalles": self.ver_detalle_cobrada, # <--- Sin emoji y texto corto
+            "Reimprimir": self.reimprimir_ticket      # <--- Sin emoji y texto corto
         }
 
         self.modulo_cobradas = ModuloConsulta(

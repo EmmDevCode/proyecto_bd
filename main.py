@@ -19,7 +19,6 @@ class AppController:
         """Paso 1: Mostrar Login"""
         self.login_window = LoginWindow()
         self.login_window.setStyleSheet(LIGHT_THEME)
-        # Conectamos la señal personalizada que crearemos en el Login
         self.login_window.login_success.connect(self.show_loading)
         self.login_window.show()
 
@@ -28,7 +27,6 @@ class AppController:
         self.login_window.close()
         self.loading_screen = LoadingScreen(user_data)
         self.loading_screen.setStyleSheet(LIGHT_THEME)
-        # Cuando la carga termine, llamamos al ruteador de roles
         self.loading_screen.connection_ready.connect(self.route_by_role)
         self.loading_screen.show()
 

@@ -6,6 +6,8 @@ from PyQt6.QtCore import Qt
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
 from frontend.components.elementos_ui import DataTable
+from frontend.components.elementos_ui import BotonGuardar, BotonEditar, BotonBaja, BotonNuevo, BadgeBooleano
+
 
 class FormularioCliente(QDialog):
     def __init__(self, db, cliente_id=None, parent=None):
@@ -35,7 +37,7 @@ class FormularioCliente(QDialog):
         layout.addRow("Dirección:", self.input_direccion)
         layout.addRow("", self.check_mayoreo)
 
-        btn_guardar = QPushButton("💾 Guardar Cliente")
+        btn_guardar = BotonGuardar("Guardar Cliente")
         btn_guardar.setStyleSheet("background-color: #27ae60; color: white; padding: 10px;")
         btn_guardar.clicked.connect(self.guardar)
         layout.addRow(btn_guardar)
@@ -71,7 +73,7 @@ class ModuloClientes(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
         header = QHBoxLayout()
         lbl = QLabel("DIRECTORIO DE CLIENTES"); lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        btn_nuevo = QPushButton("+ Registrar Cliente"); btn_nuevo.setStyleSheet("background-color: #2980b9; color: white; padding: 10px;")
+        btn_nuevo = BotonNuevo("Registrar Cliente"); btn_nuevo.setStyleSheet("background-color: #2980b9; color: white; padding: 10px;")
         btn_nuevo.clicked.connect(lambda: self.abrir_formulario())
         header.addWidget(lbl); header.addStretch(); header.addWidget(btn_nuevo)
         layout.addLayout(header)
@@ -88,18 +90,26 @@ class ModuloClientes(QWidget):
             self.tabla.setItem(i, 1, QTableWidgetItem(fila[1]))
             self.tabla.setItem(i, 2, QTableWidgetItem(fila[2]))
             self.tabla.setItem(i, 3, QTableWidgetItem(fila[3]))
-            self.tabla.setItem(i, 4, QTableWidgetItem("✅" if fila[4] else "❌"))
             
+            # --- COLUMNA 4: Píldora de Mayoreo ---
+            badge = BadgeBooleano(activo=fila[4], texto_v="Mayoreo", texto_f="Normal")
+            contenedor_badge = QWidget()
+            ly_badge = QHBoxLayout(contenedor_badge)
+            ly_badge.setContentsMargins(0, 0, 0, 0)
+            ly_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            ly_badge.addWidget(badge)
+            self.tabla.setCellWidget(i, 4, contenedor_badge)
+            
+            # --- COLUMNA 5: Botones de Acción Limpios ---
             btns = QWidget()
             ly = QHBoxLayout(btns)
             ly.setContentsMargins(0, 0, 0, 0)
             
-            btn_edit = QPushButton("✏️ Editar")
-            btn_edit.setStyleSheet("background-color: #f39c12; color: white;")
+            # ¡Mira qué limpio queda el código ahora!
+            btn_edit = BotonEditar("Editar")
             btn_edit.clicked.connect(lambda _, id_c=fila[0]: self.abrir_formulario(id_c))
             
-            btn_del = QPushButton("🗑️ Baja")
-            btn_del.setStyleSheet("background-color: #e74c3c; color: white;")
+            btn_del = BotonBaja("Baja")
             btn_del.clicked.connect(lambda _, id_c=fila[0]: self.eliminar(id_c))
             
             ly.addWidget(btn_edit)
