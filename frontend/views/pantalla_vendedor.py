@@ -8,7 +8,7 @@ import json
 from frontend.views.crear_orden import CreateOrderWindow
 from frontend.components.modulo_consulta import ModuloConsulta
 from frontend.components.menu_lateral import Sidebar
-from frontend.views.crear_cotizacion import CreateQuotationWindow 
+from frontend.views.crear_cotizacion import CreateQuotationWindow
 
 class PosWindow(QWidget):
     def __init__(self, user_data):
@@ -83,7 +83,7 @@ class PosWindow(QWidget):
             titulo="ÓRDENES DE VENTA PENDIENTES DEL DÍA", 
             columnas=["Folio", "Fecha", "Hora", "Cliente", "Importe", "Estatus"], 
             query_base=query_ventas,
-            on_edit_callback=self.abrir_editor_orden # Al hacer doble clic, llama a esta función
+            action_callback=self.abrir_editor_orden # Al hacer doble clic, llama a esta función
         )
 
         # Consulta de Cotizaciones (TO_CHAR quita los microsegundos)
@@ -98,7 +98,7 @@ class PosWindow(QWidget):
             titulo="COTIZACIONES DEL DÍA", 
             columnas=["Folio", "Fecha", "Hora", "Cliente", "Importe"], 
             query_base=query_cots,
-            on_edit_callback=self.abrir_editor_orden # Al hacer doble clic, llama a esta función
+            action_callback=self.abrir_editor_orden # Al hacer doble clic, llama a esta función
         )
 
         # Añadimos los módulos al layout de contenido
@@ -125,18 +125,23 @@ class PosWindow(QWidget):
             self.modulo_cotizaciones.cargar_datos_del_dia()
 
     def abrir_formulario_creacion(self):
-        """Abre la ventana para crear órdenes/cotizaciones nuevas"""
-        dialog = CreateOrderWindow(self.user_data, self)
+        """Abre el formulario correspondiente según la pestaña activa"""
+        if self.modulo_cotizaciones.isVisible():
+            dialog = CreateQuotationWindow(self.user_data, self)
+        else:
+            dialog = CreateOrderWindow(self.user_data, self)
+            
         if dialog.exec():
             self.modulo_ventas.cargar_datos_del_dia()
             self.modulo_cotizaciones.cargar_datos_del_dia()
 
     def abrir_editor_orden(self, folio):
-        """Se ejecuta al hacer doble clic. Abre el formulario con los datos cargados."""
-        # Pasamos el folio a la ventana
-        dialog = CreateOrderWindow(self.user_data, self, folio_editar=folio)
-        
-        # Si el usuario editó y guardó, refrescamos las tablas
+        """Detecta el folio y abre la ventana correcta"""
+        if folio.startswith("COT-"):
+            dialog = CreateQuotationWindow(self.user_data, self, folio_editar=folio)
+        else:
+            dialog = CreateOrderWindow(self.user_data, self, folio_editar=folio)
+            
         if dialog.exec():
             self.modulo_ventas.cargar_datos_del_dia()
             self.modulo_cotizaciones.cargar_datos_del_dia()

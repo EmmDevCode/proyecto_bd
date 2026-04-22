@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import QApplication
 from frontend.views.ventana_login import LoginWindow
 from frontend.views.pantalla_carga import LoadingScreen
 from frontend.views.pantalla_vendedor import PosWindow 
+from frontend.views.pantalla_caja import CajaWindow
+from frontend.views.pantalla_admin import AdminWindow
 from frontend.assets.styles import LIGHT_THEME
 
 class AppController:
@@ -38,11 +40,10 @@ class AppController:
         if role == 'Vendedor':
             self.main_window = PosWindow(user_data)
         elif role == 'Cajero':
-            # self.main_window = CajaWindow(user_data) (Por crear)
-            print("Abriendo Módulo de Caja...")
+            self.main_window = CajaWindow(user_data)
         elif role == 'Administrador':
-            # self.main_window = AdminWindow(user_data) (Por crear)
-            print("Abriendo Módulo Administrativo (ERP)...")
+            self.main_window = AdminWindow(user_data) 
+    
             
         if self.main_window:
             self.main_window.setStyleSheet(LIGHT_THEME)
