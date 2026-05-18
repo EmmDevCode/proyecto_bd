@@ -3,7 +3,6 @@ import asyncio
 import websockets
 import json
 
-# Aquí guardaremos a todos los clientes conectados (Cajeros y Vendedores)
 clientes_conectados = set()
 
 async def manejador_conexiones(websocket):
@@ -14,7 +13,7 @@ async def manejador_conexiones(websocket):
         # Escuchar mensajes continuamente
         async for mensaje in websocket:
             print(f"Mensaje recibido: {mensaje}")
-            # Reenviar el mensaje a todos los DEMÁS clientes conectados (Broadcast)
+            # Reenviar el mensaje a todos los DEMÁS clientes conectados 
             for cliente in clientes_conectados:
                 if cliente != websocket:
                     await cliente.send(mensaje)

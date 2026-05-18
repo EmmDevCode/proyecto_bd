@@ -4,8 +4,6 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMes
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtWebSockets import QWebSocket
 import json
-
-# Importaciones de nuestras vistas y componentes
 from frontend.views.crear_orden import CreateOrderWindow
 from frontend.components.modulo_consulta import ModuloConsulta
 from frontend.components.menu_lateral import Sidebar
@@ -16,7 +14,7 @@ class PosWindow(QWidget):
         super().__init__()
         self.user_data = user_data
         
-        # Conexión WebSocket para actualizaciones en tiempo real
+    
         self.ws = QWebSocket()
         self.ws.textMessageReceived.connect(self.al_recibir_notificacion)
         self.ws.open(QUrl("ws://localhost:8765"))
@@ -32,9 +30,7 @@ class PosWindow(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # ==========================================
-        # 1. MENÚ LATERAL (Sidebar Reutilizable)
-        # ==========================================
+  
         opciones_menu = {
             "Órdenes de Venta": lambda: self.cambiar_vista("Órdenes de Venta"),
             "Cotizaciones": lambda: self.cambiar_vista("Cotizaciones"),
@@ -44,15 +40,12 @@ class PosWindow(QWidget):
         self.sidebar = Sidebar("EL TORNILLO FELIZ\nPOS", opciones_menu)
         main_layout.addWidget(self.sidebar)
 
-        # ==========================================
-        # 2. ÁREA CENTRAL (Contenedor Principal)
-        # ==========================================
+     
         content_area = QWidget()
         self.content_layout = QVBoxLayout(content_area) 
         self.content_layout.setContentsMargins(0, 0, 0, 0)
         self.content_layout.setSpacing(0)
 
-        # --- HEADER TOP BAR ---
         header_frame = QFrame()
         header_frame.setStyleSheet("""
             QFrame {
@@ -112,7 +105,7 @@ class PosWindow(QWidget):
         
         self.content_layout.addWidget(header_frame)
 
-        # --- BODY AREA ---
+      
         body_area = QWidget()
         self.body_layout = QVBoxLayout(body_area)
         self.body_layout.setContentsMargins(40, 30, 40, 30)
@@ -120,11 +113,7 @@ class PosWindow(QWidget):
         
         self.content_layout.addWidget(body_area)
 
-        # ==========================================
-        # 3. MÓDULOS DE CONSULTA (Ventas y Cotizaciones)
-        # ==========================================
-        
-        # Consulta de Ventas incluyendo cliente_temporal
+
         query_ventas = """
             SELECT v.folio, v.fecha, TO_CHAR(v.hora, 'HH24:MI'), c.nombre_completo, v.cliente_temporal, v.total, v.estatus
             FROM orden_venta v

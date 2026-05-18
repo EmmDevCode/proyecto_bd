@@ -72,7 +72,7 @@ class ModuloReportes(QWidget):
         layout.addLayout(fila_cards)
         layout.addSpacing(20)
 
-        # --- 2. ÁREA DE GRÁFICAS (Simuladas con Barras de Progreso Estilizadas) ---
+
         panel_graficas = QFrame()
         panel_graficas.setStyleSheet("background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0;")
         ly_g = QVBoxLayout(panel_graficas)
@@ -100,7 +100,7 @@ class ModuloReportes(QWidget):
 
     def actualizar_datos(self):
         try:
-            # Datos para las Cards
+
             v_mes = self.db.fetch_one("SELECT SUM(total) FROM orden_venta WHERE estatus='Cobrada' AND fecha > CURRENT_DATE - INTERVAL '30 days'")
             self.card_ventas.lbl_v.setText(f"${(v_mes[0] or 0):,.2f}")
             
@@ -110,8 +110,7 @@ class ModuloReportes(QWidget):
             s_bajo = self.db.fetch_one("SELECT COUNT(*) FROM inventario_almacen WHERE cantidad_existente <= 5")
             self.card_alertas.lbl_v.setText(str(s_bajo[0]))
 
-            # Datos para la Gráfica de Barras
-            # Limpiamos barras anteriores
+       
             while self.contenedor_barras.count():
                 child = self.contenedor_barras.takeAt(0)
                 if child.widget(): child.widget().deleteLater()

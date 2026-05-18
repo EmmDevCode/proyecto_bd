@@ -31,9 +31,6 @@ class AdminWindow(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # ==========================================
-        # 1. EL ÚNICO MENÚ DEL SISTEMA (Control Remoto)
-        # ==========================================
         config_menu = {
             (qta.icon('fa5s.home', color='#bdc3c7'), "Dashboard"): lambda: self.cambiar_vista_admin(0),
             
@@ -70,9 +67,7 @@ class AdminWindow(QWidget):
         self.sidebar = Sidebar("FERROSOFT ADMIN", config_menu)
         main_layout.addWidget(self.sidebar)
 
-        # ==========================================
-        # 2. CONTENEDOR DE VISTAS (Stacked Widget)
-        # ==========================================
+
         self.vistas = QStackedWidget()
         
         # --- Vista 0: Dashboard ---
@@ -105,8 +100,7 @@ class AdminWindow(QWidget):
         )
         self.vistas.addWidget(self.modulo_auditoria)
 
-        # --- Vista 4: Reportes Analíticos (EL NUEVO DASHBOARD) ---
-        # (Eliminamos el código viejo de query_ventas_global)
+        # --- Vista 4: Reportes Analíticos 
         self.vista_reportes = ModuloReportes()
         self.vistas.addWidget(self.vista_reportes)
 
@@ -136,9 +130,7 @@ class AdminWindow(QWidget):
 
         main_layout.addWidget(self.vistas)
 
-    # ==========================================
-    # FUNCIONES DE UI Y NAVEGACIÓN
-    # ==========================================
+
     def crear_dashboard_bienvenida(self):
         widget = QWidget()
         layout = QVBoxLayout(widget)
@@ -169,8 +161,6 @@ class AdminWindow(QWidget):
         self.vistas.setCurrentIndex(indice_ventana)
         
         if indice_ventana == 1:
-            # Revisa en tu archivo pantalla_vendedor.py que strings usaste en cambiar_vista
-            # Ejemplo: Si usaste "Cotizaciones", el menú arriba debe decir exactamente eso.
             try: self.vista_ventas.cambiar_vista(nombre_vista_interna)
             except Exception as e: print(f"Error cambiando vista vendedor: {e}")
             

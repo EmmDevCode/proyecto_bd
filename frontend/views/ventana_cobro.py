@@ -17,7 +17,7 @@ class VentanaCobro(QDialog):
         self.user_data = user_data
         self.modo_solo_lectura = modo_solo_lectura
         self.db = DatabaseConnection()
-        self.total_pagar = 0.0 # Se inicializa como float
+        self.total_pagar = 0.0 
         self.id_venta_db = None
         
         self.init_ui()
@@ -31,7 +31,7 @@ class VentanaCobro(QDialog):
         main_layout.setContentsMargins(24, 24, 24, 24)
         main_layout.setSpacing(24)
 
-        # PANEL IZQUIERDO: Resumen con las nuevas columnas
+        # PANEL IZQUIERDO
         panel_izq = QFrame()
         panel_izq.setStyleSheet("background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0;")
         layout_izq = QVBoxLayout(panel_izq)
@@ -46,13 +46,13 @@ class VentanaCobro(QDialog):
         self.lbl_info_general.setStyleSheet("font-size: 14px; color: #475569; line-height: 1.5;")
         layout_izq.addWidget(self.lbl_info_general)
 
-        # TABLA ACTUALIZADA SEGÚN TU PEDIDO
+   
         self.tabla_detalles = DataTable(["Código", "Nombre", "Cant", "Desc", "Subtotal"])
         self.tabla_detalles.setEditTriggers(DataTable.EditTrigger.NoEditTriggers)
         layout_izq.addWidget(self.tabla_detalles)
         main_layout.addWidget(panel_izq, stretch=6)
 
-        # PANEL DERECHO: Pago
+        # PANEL DERECHO
         panel_der = QFrame()
         panel_der.setStyleSheet("background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0;")
         layout_der = QVBoxLayout(panel_der)
@@ -240,7 +240,7 @@ class VentanaCobro(QDialog):
                     self.id_venta_db, recibido, cambio, metodo, self.user_data['id']
                 ))
 
-                # --- NUEVO: GENERACIÓN AUTOMÁTICA DEL TICKET ---
+              
                 self.generar_y_abrir_ticket(recibido, cambio, metodo)
 
                 self.ws_cliente.sendTextMessage(json.dumps({"tipo": "ORDEN_COBRADA", "folio": self.folio}))
@@ -254,7 +254,7 @@ class VentanaCobro(QDialog):
         import os, sys
         from backend.generador_pdf import GeneradorPDF
         try:
-            # Traemos los datos de la orden incluyendo el cliente_temporal
+    
             query = """
                 SELECT v.folio, v.fecha, TO_CHAR(v.hora, 'HH24:MI'), c.nombre_completo, v.cliente_temporal, v.total
                 FROM orden_venta v
@@ -267,7 +267,6 @@ class VentanaCobro(QDialog):
             folio, fecha, hora, cliente, cte_temp, total = res
             nombre_cliente = f"{cliente} ({cte_temp})" if cte_temp and cte_temp != 'MOSTRADOR' else cliente
 
-            # Traemos el desglose de productos asociados
             query_prod = """
                 SELECT p.codigo, p.nombre, d.cantidad, d.descuento, d.precio_unitario, d.subtotal
                 FROM detalle_venta d
@@ -289,7 +288,6 @@ class VentanaCobro(QDialog):
                 "metodo": metodo
             }
 
-            # Carpeta estandarizada local
             carpeta_tickets = os.path.join(os.getcwd(), "tickets")
             os.makedirs(carpeta_tickets, exist_ok=True)
             ruta_salida = os.path.join(carpeta_tickets, f"Ticket_{folio}.pdf")

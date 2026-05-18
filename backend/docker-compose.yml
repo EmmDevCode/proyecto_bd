@@ -8,13 +8,13 @@ services:
     container_name: ferreteria_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin123 # Pon tu contraseña real
+      POSTGRES_PASSWORD: admin123 
       POSTGRES_DB: ferrosoft_bd
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    restart: always # Se inicia solo al prender la PC
+    restart: always 
 
   # 2. Servidor WebSocket
   websocket_server:
@@ -26,8 +26,7 @@ services:
       - "8765:8765"
     depends_on:
       - ferreteria_db
-    restart: always # Se inicia solo al prender la PC
+    restart: always 
 
-# Volumen para que la base de datos no se borre si apagas el contenedor
 volumes:
   pgdata:

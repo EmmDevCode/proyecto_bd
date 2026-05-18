@@ -17,7 +17,7 @@ class AuthService:
         result = self.db.fetch_one(query, (username, pin))
         
         if result:
-            # Retornamos un diccionario con los datos del usuario
+            
             return {
                 "id": result[0],
                 "nombre": result[1],

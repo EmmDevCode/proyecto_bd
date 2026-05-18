@@ -14,8 +14,8 @@ class CarritoManager(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # 1. Cambiamos la cabecera para que diga Desc. (%)
-        self.tabla = DataTable(["Código", "Descripción", "Cant.", "Desc. (%)", "Precio U.", "Importe"])
+
+        self.tabla = DataTable(["Código", "Descripción", "U. Medida", "Cant.", "Desc. (%)", "Precio U.", "Importe"])
         
         self.tabla.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
         self.tabla.setEditTriggers(QAbstractItemView.EditTrigger.DoubleClicked | 
@@ -34,15 +34,15 @@ class CarritoManager(QWidget):
             if width:
                 self.tabla.setColumnWidth(i, int(width))
             else:
-                if i == 0: self.tabla.setColumnWidth(i, 150)
+                if i == 0: self.tabla.setColumnWidth(i, 130)
                 elif i == 1: header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch) 
-                else: self.tabla.setColumnWidth(i, 120)
+                elif i == 2: self.tabla.setColumnWidth(i, 90) # Ajuste para Unidad de Medida
+                else: self.tabla.setColumnWidth(i, 110)
                 
         header.sectionResized.connect(self.guardar_ancho_columnas)
         self.tabla.itemChanged.connect(self.recalcular_totales)
         layout.addWidget(self.tabla)
 
-        # 2. El Totalizador
         self.lbl_total = QLabel("TOTAL: $0.00")
         self.lbl_total.setStyleSheet("""
             font-size: 28px; font-weight: 900; color: #0f172a; 
@@ -52,16 +52,16 @@ class CarritoManager(QWidget):
     def guardar_ancho_columnas(self, logicalIndex, oldSize, newSize):
         self.settings.setValue(f"carrito_orden_col_{logicalIndex}", newSize)
 
-    def agregar_producto(self, id_prod, codigo, nombre, precio):
+    def agregar_producto(self, id_prod, codigo, nombre, unidad, precio):
         self.productos.append({
-            "id": id_prod, "codigo": codigo, "nombre": nombre, 
+            "id": id_prod, "codigo": codigo, "nombre": nombre, "unidad": unidad,
             "cant": 1.0, "desc": 0.0, 
             "precio": float(precio), "subtotal": float(precio)
         })
         self.refrescar_tabla()
         
         ultima_fila = len(self.productos) - 1
-        self.tabla.setCurrentCell(ultima_fila, 2)
+        self.tabla.setCurrentCell(ultima_fila, 3) 
 
     def cargar_carrito_existente(self, lista_productos):
         self.productos = lista_productos
@@ -82,6 +82,7 @@ class CarritoManager(QWidget):
             items = [
                 QTableWidgetItem(prod['codigo']),
                 QTableWidgetItem(prod['nombre']),
+                QTableWidgetItem(str(prod.get('unidad', 'PZA'))), 
                 QTableWidgetItem(str(prod['cant'])),   
                 QTableWidgetItem(str(prod['desc'])),   
                 QTableWidgetItem(f"{prod['precio']:.2f}"),
@@ -89,7 +90,8 @@ class CarritoManager(QWidget):
             ]
             
             for col, item in enumerate(items):
-                if col not in [2, 3]:
+                # Ahora las editables son 3 (Cant) y 4 (Desc)
+                if col not in [3, 4]:
                     item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 else:
                     item.setBackground(Qt.GlobalColor.yellow)
@@ -105,17 +107,17 @@ class CarritoManager(QWidget):
         row = item.row()
         col = item.column()
         
-        if col in [2, 3]: 
+       
+        if col in [3, 4]: 
             try:
                 nuevo_valor = float(item.text())
-                if col == 2: self.productos[row]['cant'] = nuevo_valor
-                elif col == 3: self.productos[row]['desc'] = nuevo_valor
+                if col == 3: self.productos[row]['cant'] = nuevo_valor
+                elif col == 4: self.productos[row]['desc'] = nuevo_valor
                 
                 p = self.productos[row]
                 
-                # --- NUEVA LÓGICA DE PORCENTAJES ---
                 subtotal_bruto = p['precio'] * p['cant']
-                monto_descuento = subtotal_bruto * (p['desc'] / 100.0) # Convertimos el % a dinero
+                monto_descuento = subtotal_bruto * (p['desc'] / 100.0) 
                 self.productos[row]['subtotal'] = subtotal_bruto - monto_descuento
                 
                 self.refrescar_tabla()

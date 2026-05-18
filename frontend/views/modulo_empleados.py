@@ -139,7 +139,7 @@ class ModuloEmpleados(QWidget):
             for j in range(4): 
                 self.tabla.setItem(i, j, QTableWidgetItem(str(fila[j])))
             
-            # Columna 4: Estatus (Usamos nuestro nuevo Badge)
+            # Columna 4: Estatus 
             badge = BadgeEstado(activo=True)
             contenedor_badge = QWidget()
             ly_badge = QHBoxLayout(contenedor_badge)
@@ -148,7 +148,7 @@ class ModuloEmpleados(QWidget):
             ly_badge.addWidget(badge)
             self.tabla.setCellWidget(i, 4, contenedor_badge)
             
-            # Columna 5: Acciones (Tus botones reutilizables)
+            # Columna 5: Acciones 
             btns = QWidget()
             ly = QHBoxLayout(btns)
             ly.setContentsMargins(0, 0, 0, 0)

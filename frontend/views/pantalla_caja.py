@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtWebSockets import QWebSocket
 import json
 
-# Importaciones de componentes estandarizados
+
 from frontend.components.menu_lateral import Sidebar
 from frontend.components.modulo_consulta import ModuloConsulta
 from frontend.components.alertas import AlertaCustom
@@ -42,9 +42,6 @@ class CajaWindow(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # ==========================================
-        # 1. SIDEBAR PROFESIONAL
-        # ==========================================
         import qtawesome as qta
         opciones_menu = {
             (qta.icon('fa5s.clock', color='#bdc3c7'), "Órdenes Pendientes"): lambda: self.cambiar_vista("Órdenes Pendientes"),
@@ -56,14 +53,11 @@ class CajaWindow(QWidget):
         self.sidebar = Sidebar("CAJERO", opciones_menu)
         main_layout.addWidget(self.sidebar)
 
-        # ==========================================
-        # 2. ÁREA DE TRABAJO
-        # ==========================================
+   
         content_area = QWidget()
         self.content_layout = QVBoxLayout(content_area) 
         self.content_layout.setContentsMargins(30, 30, 30, 30)
 
-        # --- Módulo 1: Fila de Cobro con Nombre/Seña ---
         query_pendientes = """
             SELECT v.folio, TO_CHAR(v.hora, 'HH24:MI'), e.nombre_completo as vendedor, c.nombre_completo as cliente, v.cliente_temporal, v.total
             FROM orden_venta v
@@ -82,7 +76,7 @@ class CajaWindow(QWidget):
             menu_opciones=menu_pendientes
         )
 
-        # --- Módulo 2: Historial de Ventas Cobradas con Nombre/Seña ---
+
         query_cobradas = """
             SELECT v.folio, TO_CHAR(v.hora, 'HH24:MI'), c.nombre_completo, v.cliente_temporal, v.total, v.estatus
             FROM orden_venta v
@@ -143,7 +137,7 @@ class CajaWindow(QWidget):
         import os, sys
         from backend.generador_pdf import GeneradorPDF
         try:
-            # Consultamos los datos de la venta y de la auditoría de su cobro
+  
             query = """
                 SELECT v.id_venta, v.fecha, TO_CHAR(v.hora, 'HH24:MI'), c.nombre_completo, v.cliente_temporal, v.total,
                        co.monto_recibido, co.cambio, co.metodo_pago, emp.nombre_completo as cajero
@@ -232,9 +226,7 @@ class CajaWindow(QWidget):
         modal = ConfiguracionHardwareModal(self)
         modal.exec()
 
-# ==========================================
-# CLASE: CONFIGURACIÓN DE HARDWARE (CAJA)
-# ==========================================
+
 from PyQt6.QtWidgets import QDialog, QComboBox, QFormLayout, QLabel, QPushButton
 from PyQt6.QtCore import QSettings
 

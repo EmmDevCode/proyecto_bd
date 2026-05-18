@@ -14,7 +14,7 @@ class GenericSearchModal(QDialog):
         self.placeholder = placeholder
         self.headers = headers
         self.query_function = query_function
-        self.selected_data = None # Aquí se guardará la fila que el usuario elija
+        self.selected_data = None 
         self.init_ui()
 
     def init_ui(self):
@@ -45,7 +45,7 @@ class GenericSearchModal(QDialog):
         self.search_input.textChanged.connect(self.perform_search)
         layout.addWidget(self.search_input)
 
-        # 2. Tabla Central (Usando tu componente reutilizable)
+        # 2. Tabla Central
         self.table = DataTable(self.headers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setStyleSheet("border: 1px solid #e2e8f0; border-radius: 8px;")
@@ -70,7 +70,7 @@ class GenericSearchModal(QDialog):
 
     def perform_search(self, text):
         """Ejecuta la búsqueda y llena la tabla"""
-        # Si el texto está vacío o tiene menos de 2 letras, limpiamos la tabla y NO buscamos en la BD
+
         if len(text) < 2:
             self.table.setRowCount(0)
             self.lbl_registros.setText("0 Registros encontrados")
@@ -94,4 +94,4 @@ class GenericSearchModal(QDialog):
                 item = self.table.item(current_row, col)
                 self.selected_data.append(item.text() if item else "")
             
-            self.accept() # Cierra el diálogo y retorna éxito
+            self.accept() 

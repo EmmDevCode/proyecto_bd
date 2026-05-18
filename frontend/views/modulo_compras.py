@@ -14,7 +14,7 @@ class VentanaNuevaCompra(QDialog):
     def __init__(self, folio_editar=None, parent=None):
         super().__init__(parent)
         self.db = DatabaseConnection()
-        self.folio_editar = folio_editar # Si viene con folio, es modo Edición
+        self.folio_editar = folio_editar 
         self.id_compra_editar = None
         self.productos_compra = [] 
         
@@ -24,7 +24,7 @@ class VentanaNuevaCompra(QDialog):
         self.init_ui()
         self.cargar_almacenes()
         
-        # --- NUEVO: Permitir borrar items con doble clic ---
+ 
         self.tabla_items.doubleClicked.connect(self.remover_item)
         
         # Si estamos en modo edición, cargamos los datos
@@ -41,9 +41,7 @@ class VentanaNuevaCompra(QDialog):
 
         layout_principal = QHBoxLayout(self)
 
-        # ==========================================
-        # PANEL IZQUIERDO: Datos de Factura y Buscadores
-        # ==========================================
+  
         panel_izq = QVBoxLayout()
         form_layout = QFormLayout()
         
@@ -97,9 +95,6 @@ class VentanaNuevaCompra(QDialog):
         panel_izq.addWidget(QLabel("<i>* Doble clic en un elemento de la tabla para quitarlo</i>"))
         panel_izq.addStretch()
 
-        # ==========================================
-        # PANEL DERECHO: Detalle, Impuestos y Totales
-        # ==========================================
         panel_der = QVBoxLayout()
         self.tabla_items = DataTable(["ID", "Código", "Producto", "Cant", "Costo Unit.", "Subtotal"])
         panel_der.addWidget(self.tabla_items)
@@ -130,9 +125,7 @@ class VentanaNuevaCompra(QDialog):
         layout_principal.addLayout(panel_izq, 1)
         layout_principal.addLayout(panel_der, 3)
 
-    # ==========================================
-    # LÓGICA DE EDICIÓN
-    # ==========================================
+
     def cargar_datos_edicion(self):
         """Carga los datos de la compra existente en la BD"""
         # 1. Datos Generales
@@ -155,7 +148,7 @@ class VentanaNuevaCompra(QDialog):
         
         self.input_factura.setText(res[5])
         
-        # Detectar si tenía IVA (Si impuestos > 0, marcamos el checkbox)
+      
         self.check_iva.setChecked(float(res[6]) > 0)
 
         # 2. Detalles de los productos
@@ -176,9 +169,7 @@ class VentanaNuevaCompra(QDialog):
             
         self.refrescar_tabla()
 
-    # ==========================================
-    # LÓGICA DE CATÁLOGOS Y BUSCADOR
-    # ==========================================
+   
     def cargar_almacenes(self):
         alms = self.db.fetch_all("SELECT id_almacen, nombre FROM almacenes WHERE estatus=TRUE")
         for a in (alms or []): self.combo_almacen.addItem(a[1], a[0])
@@ -205,9 +196,6 @@ class VentanaNuevaCompra(QDialog):
             self.producto_temporal = {"id": data[0], "cod": data[1], "nom": data[2], "costo": float(data[3])}
             self.input_producto.setText(f"{data[1]} - {data[2]} (Costo: ${self.producto_temporal['costo']:.2f})")
 
-    # ==========================================
-    # LÓGICA DE NEGOCIO (TABLA Y BD)
-    # ==========================================
     def agregar_a_lista(self):
         if not self.producto_temporal:
             AlertaCustom.show_warning(self, "Aviso", "Primero busca y selecciona un producto.")
@@ -216,7 +204,7 @@ class VentanaNuevaCompra(QDialog):
         cant = self.input_cantidad.value()
         subtotal_linea = cant * self.producto_temporal['costo']
         
-        # Revisamos si el producto ya está en la lista para sumar la cantidad
+
         encontrado = False
         for p in self.productos_compra:
             if p['id'] == self.producto_temporal['id']:
@@ -277,9 +265,7 @@ class VentanaNuevaCompra(QDialog):
 
         id_alm = self.combo_almacen.currentData()
 
-        # ==========================================
-        # EL ALGORITMO DE SEGURIDAD (CÁLCULO DE DELTAS)
-        # ==========================================
+       
         if self.id_compra_editar:
             # 1. Obtener lo que había antes
             old_items = self.db.fetch_all("SELECT id_producto, cantidad FROM detalle_compra WHERE id_compra = %s", (self.id_compra_editar,))
@@ -303,7 +289,7 @@ class VentanaNuevaCompra(QDialog):
                             AlertaCustom.show_error(self, "Protección de Inventario", f"No puedes reducir la factura de:\n'{nombre}'\n\nYa vendiste estos productos y tu stock quedaría en negativo.")
                             return # ¡ABORTAMOS EL GUARDADO!
 
-        # Si pasamos la validación (o es compra nueva), procedemos a guardar
+
         if AlertaCustom.ask_confirm(self, "Confirmar", "¿Guardar los cambios en el sistema?"):
             try:
                 if self.id_compra_editar:
@@ -329,7 +315,7 @@ class VentanaNuevaCompra(QDialog):
                     AlertaCustom.show_success(self, "Éxito", "Compra actualizada correctamente.")
                 
                 else:
-                    # MODO CREACIÓN (El código que ya tenías)
+                    # MODO CREACIÓN 
                     folio_int = f"CMP-{self.input_factura.text()}"
                     res = self.db.fetch_one("""
                         INSERT INTO compras (folio_interno, id_proveedor, id_almacen_destino, numero_factura, fecha, tipo_cambio, impuestos_totales, total_compra)
@@ -382,7 +368,6 @@ class ModuloCompras(QWidget):
             ORDER BY c.fecha DESC
         """
         
-        # --- NUEVO: Inyectamos el menú de opciones para que aparezca al dar clic derecho ---
         menu_opciones = {
             "Editar Factura": self.abrir_formulario_edicion
         }

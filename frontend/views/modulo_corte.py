@@ -17,7 +17,7 @@ class ModuloCorte(QWidget):
         self.fondo_inicial = fondo_inicial
         self.db = DatabaseConnection()
         
-        # Variables para almacenar lo que dice el sistema
+  
         self.sistema_efectivo = 0.0
         self.sistema_tarjetas = 0.0
         self.sistema_transferencias = 0.0
@@ -35,12 +35,9 @@ class ModuloCorte(QWidget):
         layout.addWidget(lbl_titulo)
         layout.addSpacing(20)
 
-        # --- CONTENEDOR PRINCIPAL DIVIDIDO EN 2 COLUMNAS ---
         h_layout = QHBoxLayout()
         
-        # ==========================================
-        # COLUMNA IZQUIERDA: Resumen del Sistema
-        # ==========================================
+   
         grupo_sistema = QGroupBox("1. Resumen del Sistema (Teórico)")
         grupo_sistema.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; margin-top: 10px; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 3px 0 3px; }")
         ly_sistema = QFormLayout(grupo_sistema)
@@ -64,9 +61,6 @@ class ModuloCorte(QWidget):
         
         h_layout.addWidget(grupo_sistema)
 
-        # ==========================================
-        # COLUMNA DERECHA: Declaración del Cajero
-        # ==========================================
         grupo_cajero = QGroupBox("2. Declaración Física (Arqueo)")
         grupo_cajero.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; border: 1px solid #3498db; border-radius: 4px; margin-top: 10px; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 3px 0 3px; color: #3498db; }")
         ly_cajero = QFormLayout(grupo_cajero)
@@ -99,9 +93,6 @@ class ModuloCorte(QWidget):
         h_layout.addWidget(grupo_cajero)
         layout.addLayout(h_layout)
 
-        # ==========================================
-        # RESULTADOS Y BOTÓN DE CIERRE
-        # ==========================================
         self.lbl_resultado = QLabel("Diferencia Total: $ 0.00")
         self.lbl_resultado.setStyleSheet("font-size: 24px; font-weight: bold; color: #7f8c8d; margin-top: 20px;")
         self.lbl_resultado.setAlignment(Qt.AlignmentFlag.AlignCenter)

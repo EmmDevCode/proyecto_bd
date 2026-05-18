@@ -10,7 +10,7 @@ class ConnectionWorker(QThread):
     progress = pyqtSignal(int)
 
     def run(self):
-        # Simulamos la verificación técnica
+
         for i in range(1, 101):
             time.sleep(0.015)
             self.progress.emit(i)
@@ -30,7 +30,7 @@ class LoadingScreen(QWidget):
         self.init_ui()
         self.centrar_ventana()
         
-        # Iniciar el worker después de inicializar la UI
+
         self.iniciar_worker()
 
     def init_ui(self):
@@ -38,23 +38,23 @@ class LoadingScreen(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setObjectName("LoadingScreen")
         
-        # Tamaño responsive
+      
         screen = QApplication.primaryScreen().availableGeometry()
         ancho = int(screen.width() * 0.25)
         alto = int(screen.height() * 0.35)
         
-        # Límites razonables ajustados para dar respiro al contenido y la sombra
+      
         ancho = max(450, min(ancho, 600))
         
-        # Fijamos solo el ancho y un mínimo de alto para evitar que se achocque
+  
         self.setFixedWidth(ancho)
         self.setMinimumHeight(350)
-        
-        # Layout principal de la ventana para alojar el contenedor con sombra
+ 
+
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         
-        # Contenedor principal estilo tarjeta blanca
+
         contenedor = QFrame()
         contenedor.setObjectName("contenedorCarga")
         contenedor.setStyleSheet("""
@@ -64,7 +64,7 @@ class LoadingScreen(QWidget):
             }
         """)
         
-        # Sombra moderna tipo web
+       
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(30)
         shadow.setColor(Qt.GlobalColor.black)
@@ -83,7 +83,7 @@ class LoadingScreen(QWidget):
         layout.setSpacing(15)
         layout.setContentsMargins(40, 40, 40, 40)
         
-        # Icono principal usando qtawesome
+  
         icono_label = QLabel()
         icono_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         try:
@@ -120,7 +120,7 @@ class LoadingScreen(QWidget):
 
         layout.addSpacing(15)
 
-        # Barra de progreso delgada y elegante
+        # Barra de progreso 
         self.progress_bar = QProgressBar()
         self.progress_bar.setObjectName("barraProgresoUnica")
         self.progress_bar.setValue(0)

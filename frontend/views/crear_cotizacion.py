@@ -8,10 +8,7 @@ import json
 import datetime
 import os
 import sys
-import fitz  # <-- ¡La magia de PyMuPDF!
-import qtawesome as qta
-
-# Componentes reutilizables del proyecto
+import fitz  
 from frontend.components.elementos_ui import FormInput, PrimaryButton
 from frontend.components.carrito_manejador import CarritoManager
 from frontend.components.alertas import AlertaCustom
@@ -118,34 +115,29 @@ class CreateQuotationWindow(QDialog):
         footer_layout = QHBoxLayout(card_footer)
         footer_layout.setContentsMargins(20, 15, 20, 15)
         
-        btn_cancelar = QPushButton("  CANCELAR")
-        btn_cancelar.setIcon(qta.icon('fa5s.times', color='white'))
+        btn_cancelar = QPushButton("CANCELAR")
         btn_cancelar.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_cancelar.setStyleSheet("QPushButton { background-color: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 10pt; } QPushButton:hover { background-color: #dc2626; }")
         btn_cancelar.clicked.connect(self.reject)
 
-        self.btn_imprimir = QPushButton("  IMPRIMIR PDF")
-        self.btn_imprimir.setIcon(qta.icon('fa5s.file-pdf', color='white'))
+        self.btn_imprimir = QPushButton("🖨️ IMPRIMIR PDF")
         self.btn_imprimir.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_imprimir.setStyleSheet("QPushButton { background-color: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 10pt; } QPushButton:hover { background-color: #2563eb; }")
         self.btn_imprimir.clicked.connect(self.exportar_cotizacion_pdf)
 
-        self.btn_habilitar_edicion = QPushButton("  EDITAR COTIZACIÓN")
-        self.btn_habilitar_edicion.setIcon(qta.icon('fa5s.edit', color='white'))
+        self.btn_habilitar_edicion = QPushButton("✏️ EDITAR COTIZACIÓN")
         self.btn_habilitar_edicion.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_habilitar_edicion.setStyleSheet("QPushButton { background-color: #f59e0b; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 10pt; } QPushButton:hover { background-color: #d97706; }")
         self.btn_habilitar_edicion.clicked.connect(self.desbloquear_edicion)
         self.btn_habilitar_edicion.hide()
 
-        self.btn_convertir = QPushButton("  CONVERTIR A VENTA")
-        self.btn_convertir.setIcon(qta.icon('fa5s.shopping-cart', color='white'))
+        self.btn_convertir = QPushButton("💵 CONVERTIR A VENTA")
         self.btn_convertir.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_convertir.setStyleSheet("QPushButton { background-color: #8b5cf6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 10pt; } QPushButton:hover { background-color: #7c3aed; }")
         self.btn_convertir.clicked.connect(self.convertir_a_venta)
         self.btn_convertir.hide()
 
-        self.btn_guardar = QPushButton("  GUARDAR COTIZACIÓN (F3)")
-        self.btn_guardar.setIcon(qta.icon('fa5s.save', color='white'))
+        self.btn_guardar = QPushButton("GUARDAR COTIZACIÓN (F3)")
         self.btn_guardar.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_guardar.setStyleSheet("QPushButton { background-color: #10b981; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 800; font-size: 11pt; } QPushButton:hover { background-color: #059669; }")
         self.btn_guardar.clicked.connect(self.save_quotation)
@@ -181,7 +173,7 @@ class CreateQuotationWindow(QDialog):
         for p in productos:
             datos["productos"].append([p["codigo"], p["nombre"], p["cant"], p["desc"], p["precio"], p["subtotal"]])
 
-        # Guardado local y seguro para tu instalador
+        
         directorio_base = os.getcwd() 
         carpeta_cotizaciones = os.path.join(directorio_base, "cotizaciones")
         os.makedirs(carpeta_cotizaciones, exist_ok=True)
@@ -193,7 +185,7 @@ class CreateQuotationWindow(QDialog):
             pdf = GeneradorPDF()
             pdf.generar_cotizacion(datos, ruta_salida)
             
-            # Lanzamos el modal HD en lugar de abrir el archivo a la fuerza
+            
             visor = VisorCotizacionModal(ruta_salida, datos, self)
             visor.exec()
                 
@@ -216,7 +208,7 @@ class CreateQuotationWindow(QDialog):
         self.setWindowTitle(f"EDITANDO COTIZACIÓN: {self.folio_editar}")
         self.search_input.setEnabled(True)
         self.btn_guardar.setEnabled(True)
-        self.btn_guardar.setText("  GUARDAR CAMBIOS")
+        self.btn_guardar.setText("GUARDAR CAMBIOS")
         self.btn_guardar.setStyleSheet("QPushButton { background-color: #10b981; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 800; font-size: 11pt; } QPushButton:hover { background-color: #059669; }")
         self.btn_habilitar_edicion.hide()
         self.carrito_manager.desbloquear_edicion()
@@ -229,12 +221,22 @@ class CreateQuotationWindow(QDialog):
                 self.id_cot_actual, cliente, fecha, hora, total = res
                 self.input_cliente.setText(cliente)
                 
-                query_det = "SELECT p.id_producto, p.codigo, p.nombre, d.cantidad, d.descuento, d.precio_unitario, d.subtotal FROM detalle_cotizacion d JOIN productos p ON d.id_producto = p.id_producto WHERE d.id_cotizacion = %s"
+
+                query_det = """
+                    SELECT p.id_producto, p.codigo, p.nombre, p.unidad_medida, d.cantidad, d.descuento, d.precio_unitario, d.subtotal 
+                    FROM detalle_cotizacion d 
+                    JOIN productos p ON d.id_producto = p.id_producto 
+                    WHERE d.id_cotizacion = %s
+                """
                 detalles_db = self.db.fetch_all(query_det, (self.id_cot_actual,))
                 
                 carrito_lista = []
                 for d in detalles_db:
-                    carrito_lista.append({ "id": d[0], "codigo": d[1], "nombre": d[2], "cant": float(d[3]), "desc": float(d[4]), "precio": float(d[5]), "subtotal": float(d[6]) })
+                    carrito_lista.append({ 
+                        "id": d[0], "codigo": d[1], "nombre": d[2], "unidad": d[3], 
+                        "cant": float(d[4]), "desc": float(d[5]), 
+                        "precio": float(d[6]), "subtotal": float(d[7]) 
+                    })
                 
                 self.carrito_manager.cargar_carrito_existente(carrito_lista)
                 self.bloquear_interfaz()
@@ -303,33 +305,33 @@ class CreateQuotationWindow(QDialog):
         self.search_input.clear()
 
     def agregar_por_codigo_directo(self, codigo):
-        query = "SELECT id_producto, codigo, nombre, precio_venta FROM productos WHERE codigo = %s AND estatus = TRUE"
+        
+        query = "SELECT id_producto, codigo, nombre, unidad_medida, precio_venta FROM productos WHERE codigo = %s AND estatus = TRUE"
         p = self.db.fetch_one(query, (codigo,))
         if p:
-            self.carrito_manager.agregar_producto(p[0], p[1], p[2], p[3])
+            self.carrito_manager.agregar_producto(p[0], p[1], p[2], p[3], p[4])
         else:
             AlertaCustom.show_error(self, "No Encontrado", f"El código {codigo} no existe.")
 
     def abrir_buscador_avanzado(self, texto):
         def query_func(t):
-            return self.db.fetch_all("SELECT codigo, nombre, precio_venta, id_producto FROM productos WHERE estatus=TRUE AND (codigo ILIKE %s OR nombre ILIKE %s) LIMIT 50", (f"%{t}%", f"%{t}%"))
+            
+            return self.db.fetch_all("SELECT codigo, nombre, unidad_medida, precio_venta, id_producto FROM productos WHERE estatus=TRUE AND (codigo ILIKE %s OR nombre ILIKE %s) LIMIT 50", (f"%{t}%", f"%{t}%"))
 
-        modal = GenericSearchModal("Buscar Producto", "Escribe para buscar...", ["CODIGO", "NOMBRE", "PRECIO", "ID"], query_func, self)
+        modal = GenericSearchModal("Buscar Producto", "Escribe para buscar...", ["CODIGO", "NOMBRE", "UNIDAD", "PRECIO", "ID"], query_func, self)
         if texto: modal.search_input.setText(texto)
         if modal.exec():
             self.agregar_por_codigo_directo(modal.selected_data[0])
 
     def keyPressEvent(self, event):
-        # Ignora el "Enter" para que no cierre la ventana
+    
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             event.ignore()
         else:
             super().keyPressEvent(event)
 
 
-# ==========================================
-# CLASE VISUALIZADOR HD (PyMuPDF)
-# ==========================================
+
 class VisorCotizacionModal(QDialog):
     """Ventana para previsualizar el PDF renderizado y las opciones de envío"""
     def __init__(self, ruta_pdf, datos, parent=None):
@@ -349,23 +351,14 @@ class VisorCotizacionModal(QDialog):
         main_layout.setSpacing(20)
         main_layout.setContentsMargins(20, 20, 20, 20)
 
-        # --- COLUMNA IZQUIERDA: PDF HD ---
         panel_pdf = QVBoxLayout()
-        lbl_preview_title = QLabel("VISTA PREVIA DEL DOCUMENTO")
-        lbl_preview_title.setStyleSheet("font-size: 14px; font-weight: 800; color: #475569;")
-        
-        # Uso de un layout horizontal para poner el icono junto al título sin usar emojis
-        ly_tit_pdf = QHBoxLayout()
-        icono_pdf = QLabel()
-        icono_pdf.setPixmap(qta.icon('fa5s.file-pdf', color='#475569').pixmap(20, 20))
-        ly_tit_pdf.addWidget(icono_pdf)
-        ly_tit_pdf.addWidget(lbl_preview_title)
-        ly_tit_pdf.addStretch()
-        panel_pdf.addLayout(ly_tit_pdf)
+        lbl_preview_title = QLabel("📄 VISTA PREVIA DEL DOCUMENTO")
+        lbl_preview_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #475569;")
+        panel_pdf.addWidget(lbl_preview_title)
 
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet("border: 1px solid #cbd5e1; background-color: #cbd5e1; border-radius: 8px;")
+        self.scroll_area.setStyleSheet("border: 1px solid #cbd5e1; background-color: #cbd5e1;")
         
         self.lbl_pdf_image = QLabel("Cargando vista previa...")
         self.lbl_pdf_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -374,59 +367,45 @@ class VisorCotizacionModal(QDialog):
         
         main_layout.addLayout(panel_pdf, stretch=6)
 
-        # --- COLUMNA DERECHA: CONTROLES ---
+        
         panel_controles = QVBoxLayout()
         panel_controles.setSpacing(15)
 
-        # Usar un widget y layout para centrar el icono de exito y titulo
-        w_exito = QFrame()
-        ly_exito = QVBoxLayout(w_exito)
-        ly_exito.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        lbl_icono_exito = QLabel()
-        lbl_icono_exito.setPixmap(qta.icon('fa5s.check-circle', color='#10b981').pixmap(40, 40))
-        lbl_icono_exito.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        lbl_titulo = QLabel("¡Generada con Éxito!")
-        lbl_titulo.setStyleSheet("font-size: 24px; font-weight: 900; color: #10b981;")
+        lbl_titulo = QLabel("✅ ¡Generada con Éxito!")
+        lbl_titulo.setStyleSheet("font-size: 24px; font-weight: bold; color: #10b981;")
         lbl_titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        ly_exito.addWidget(lbl_icono_exito)
-        ly_exito.addWidget(lbl_titulo)
-        panel_controles.addWidget(w_exito)
+        panel_controles.addWidget(lbl_titulo)
 
         resumen_frame = QFrame()
-        resumen_frame.setStyleSheet("background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 10px;")
+        resumen_frame.setStyleSheet("background-color: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1;")
         resumen_ly = QVBoxLayout(resumen_frame)
         
         lbl_info = QLabel(f"""
-            <h3 style='color: #0f172a; margin-top:0;'>Resumen General</h3>
-            <span style='color: #64748b; font-size: 12px; font-weight: bold;'>FOLIO</span><br><span style='color: #1e293b; font-weight: bold;'>{self.datos['folio']}</span><br><br>
-            <span style='color: #64748b; font-size: 12px; font-weight: bold;'>CLIENTE</span><br><span style='color: #1e293b; font-weight: bold;'>{self.datos['cliente']}</span><br><br>
-            <span style='color: #64748b; font-size: 12px; font-weight: bold;'>VENDEDOR</span><br><span style='color: #1e293b; font-weight: bold;'>{self.datos['vendedor']}</span><br><br>
-            <span style='color: #64748b; font-size: 12px; font-weight: bold;'>ARTÍCULOS</span><br><span style='color: #1e293b; font-weight: bold;'>{len(self.datos['productos'])}</span><br><br>
+            <h3 style='color: #1e293b; margin-top:0;'>Resumen General</h3>
+            <b>Folio:</b> {self.datos['folio']}<br>
+            <b>Cliente:</b> {self.datos['cliente']}<br>
+            <b>Vendedor:</b> {self.datos['vendedor']}<br>
+            <b>Artículos:</b> {len(self.datos['productos'])}<br><br>
             <h2 style='color: #3b82f6; margin-bottom:0;'>TOTAL: ${self.datos['total']:,.2f}</h2>
         """)
-        lbl_info.setStyleSheet("font-size: 14px; color: #475569;")
+        lbl_info.setStyleSheet("font-size: 15px; color: #475569;")
         resumen_ly.addWidget(lbl_info)
         panel_controles.addWidget(resumen_frame)
 
-        lbl_ruta = QLabel(f"<b>Ruta de guardado:</b><br><span style='color: #64748b; font-size:11px;'>{self.ruta_pdf}</span>")
+        lbl_ruta = QLabel(f"<b>Guardado localmente en:</b><br><span style='color: gray; font-size:11px;'>{self.ruta_pdf}</span>")
         lbl_ruta.setWordWrap(True)
         panel_controles.addWidget(lbl_ruta)
 
         panel_controles.addStretch()
 
         # Botones Principales
-        btn_abrir = QPushButton("  ABRIR EN LECTOR PDF")
-        btn_abrir.setIcon(qta.icon('fa5s.external-link-alt', color='white'))
-        btn_abrir.setStyleSheet("QPushButton { background-color: #3b82f6; color: white; font-weight: 800; padding: 14px; border-radius: 8px; font-size: 13px; } QPushButton:hover { background-color: #2563eb; }")
+        btn_abrir = QPushButton("📂 ABRIR EN LECTOR PREDETERMINADO")
+        btn_abrir.setStyleSheet("background-color: #3b82f6; color: white; font-weight: bold; padding: 12px; border-radius: 6px;")
         btn_abrir.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_abrir.clicked.connect(self.abrir_archivo)
 
-        btn_imprimir = QPushButton("  MANDAR A IMPRESORA")
-        btn_imprimir.setIcon(qta.icon('fa5s.print', color='white'))
-        btn_imprimir.setStyleSheet("QPushButton { background-color: #64748b; color: white; font-weight: 800; padding: 14px; border-radius: 8px; font-size: 13px; } QPushButton:hover { background-color: #475569; }")
+        btn_imprimir = QPushButton("🖨️ MANDAR A IMPRESORA")
+        btn_imprimir.setStyleSheet("background-color: #64748b; color: white; font-weight: bold; padding: 12px; border-radius: 6px;")
         btn_imprimir.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_imprimir.clicked.connect(self.simular_impresion)
 
@@ -435,21 +414,20 @@ class VisorCotizacionModal(QDialog):
 
         # Formulario de Envío por Correo
         frame_correo = QFrame()
-        frame_correo.setStyleSheet("background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 5px;")
+        frame_correo.setStyleSheet("background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 5px;")
         ly_correo = QVBoxLayout(frame_correo)
         
-        lbl_correo = QLabel("<b>Enviar al cliente por correo:</b>")
-        lbl_correo.setStyleSheet("color: #92400e; font-size: 13px;")
+        lbl_correo = QLabel("<b>Enviar archivo al cliente por correo:</b>")
+        lbl_correo.setStyleSheet("color: #92400e; font-size: 12px;")
         ly_correo.addWidget(lbl_correo)
 
         input_ly = QHBoxLayout()
         self.input_correo = QLineEdit()
         self.input_correo.setPlaceholderText("cliente@correo.com")
-        self.input_correo.setStyleSheet("QLineEdit { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background-color: white; } QLineEdit:focus { border: 1px solid #f59e0b; }")
+        self.input_correo.setStyleSheet("padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; background-color: white;")
         
-        btn_correo = QPushButton("  ENVIAR")
-        btn_correo.setIcon(qta.icon('fa5s.paper-plane', color='white'))
-        btn_correo.setStyleSheet("QPushButton { background-color: #f59e0b; color: white; font-weight: bold; padding: 10px 15px; border-radius: 6px; } QPushButton:hover { background-color: #d97706; }")
+        btn_correo = QPushButton("📧 ENVIAR")
+        btn_correo.setStyleSheet("background-color: #f59e0b; color: white; font-weight: bold; padding: 8px 15px; border-radius: 4px;")
         btn_correo.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_correo.clicked.connect(self.simular_correo)
         
@@ -493,8 +471,36 @@ class VisorCotizacionModal(QDialog):
             AlertaCustom.show_error(self, "Error", f"No se pudo abrir el archivo: {e}")
 
     def simular_impresion(self):
-        AlertaCustom.show_info(self, "Imprimiendo", f"Enviando el documento {self.datos['folio']} a la impresora predeterminada de Windows...")
-
+        from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
+        from frontend.components.alertas import AlertaCustom
+        
+        try:
+            # 1. Creamos el objeto del sistema de impresión
+            printer = QPrinter(QPrinter.PrinterMode.HighResolution)
+            
+            # 2. Abrimos la ventana nativa de impresión de Windows
+            dialogo_impresion = QPrintDialog(printer, self)
+            
+            if dialogo_impresion.exec() == QPrintDialog.DialogCode.Accepted:
+                # Si el usuario selecciona una impresora y le da a "Imprimir"
+                impresora_nombre = printer.printerName()
+                AlertaCustom.show_success(
+                    self, 
+                    "Enviado a Impresora", 
+                    f"La cotización {self.datos['folio']} se envió con éxito a:\n{impresora_nombre}"
+                )
+            else:
+                # Si el usuario cancela el diálogo de Windows
+                print("Impresión cancelada por el usuario.")
+                
+        except Exception as e:
+            # Respaldo por si la computadora no tiene el servicio de impresión de Windows activo
+            from PyQt6.QtWidgets import QInputDialog
+            impresoras = ["Microsoft Print to PDF", "Impresora Genérica EPSON"]
+            impresora, ok = QInputDialog.getItem(self, "Imprimir Cotización", "Selecciona impresora:", impresoras, 0, False)
+            if ok and impresora:
+                AlertaCustom.show_info(self, "Imprimiendo", f"Enviando a: {impresora}")
+            
     def simular_correo(self):
         correo = self.input_correo.text().strip()
         if not correo:

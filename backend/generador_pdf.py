@@ -9,11 +9,11 @@ from reportlab.lib import colors
 
 class GeneradorPDF:
     def __init__(self):
-        self.color_primario = colors.HexColor("#3b82f6") # Blue-500
-        self.color_secundario = colors.HexColor("#0f172a") # Slate-900
-        self.color_gris_claro = colors.HexColor("#f8fafc") # Slate-50
-        self.color_gris_borde = colors.HexColor("#e2e8f0") # Slate-200
-        self.color_texto = colors.HexColor("#334155") # Slate-700
+        self.color_primario = colors.HexColor("#3b82f6") 
+        self.color_secundario = colors.HexColor("#0f172a") 
+        self.color_gris_claro = colors.HexColor("#f8fafc")
+        self.color_gris_borde = colors.HexColor("#e2e8f0")
+        self.color_texto = colors.HexColor("#334155")
         
         self.styles = getSampleStyleSheet()
         self.estilo_titulo = ParagraphStyle(
@@ -49,7 +49,7 @@ class GeneradorPDF:
         info_empresa = Paragraph("""
             <font size=14 color='#0f172a'><b>EL TORNILLO FELIZ</b></font><br/>
             <font color='#64748b'>Tu Ferretería, Siempre Contigo</font><br/>
-            Calle 25 #123, Colonia Centro<br/>
+            Calle 50 #215, Col Jesús Carranza<br/>
             Tel: (999) 123-4567<br/>
             contacto@eltornillofeliz.com
         """, self.estilo_normal)
@@ -74,7 +74,7 @@ class GeneradorPDF:
         
         fecha_texto = datetime.strptime(datos_cotizacion.get('fecha', ''), '%Y-%m-%d').strftime('%d/%m/%Y') if datos_cotizacion.get('fecha') else 'N/A'
         
-        # Tarjeta de Info del Cliente (Tabla con fondo)
+        # Tarjeta de Info del Cliente 
         info_izq = Paragraph(f"<b>CLIENTE:</b><br/>{datos_cotizacion.get('cliente', 'Mostrador')}<br/><br/><b>ATENDIDO POR:</b><br/>{datos_cotizacion.get('vendedor', 'Vendedor')}", self.estilo_normal)
         info_der = Paragraph(f"<b>FECHA DE EMISIÓN:</b><br/>{fecha_texto}<br/><br/><b>VIGENCIA:</b><br/>15 días", self.estilo_normal)
         
@@ -88,7 +88,7 @@ class GeneradorPDF:
         elementos.append(tabla_cliente)
         elementos.append(Spacer(1, 25))
 
-        # 3. TABLA DE PRODUCTOS (Calculando precios SIN IVA)
+        # 3. TABLA DE PRODUCTOS 
         datos_tabla = [['Código', 'Descripción', 'Cant.', 'Desc %', 'Precio U.', 'Importe']]
         
         subtotal_general = 0.0 # Acumulador del precio real sin IVA
@@ -96,11 +96,11 @@ class GeneradorPDF:
         for prod in datos_cotizacion.get('productos', []):
             desc_formateada = Paragraph(str(prod[1]), self.estilo_celda)
             
-            # prod[4] es precio unitario y prod[5] es subtotal (Ambos traen IVA desde la BD)
+            # prod[4] es precio unitario y prod[5] es subtotal 
             precio_con_iva = float(prod[4])
             importe_con_iva = float(prod[5])
             
-            # Desglosamos el IVA (Dividimos entre 1.16)
+           
             precio_sin_iva = precio_con_iva / 1.16
             importe_sin_iva = importe_con_iva / 1.16
             
@@ -209,9 +209,9 @@ class GeneradorPDF:
 
         elementos.append(Paragraph("<b>EL TORNILLO FELIZ</b>", ParagraphStyle('TituloTicket', parent=estilo_centro, fontSize=13, fontName='Helvetica-Bold')))
         elementos.append(Paragraph("Tu Ferretería, Siempre Contigo", estilo_centro))
-        elementos.append(Paragraph("Calle 25 #123, Colonia Centro<br/>Tel: (999) 123-4567", estilo_centro))
+        elementos.append(Paragraph("Calle 50 #215, Col Jesús Carranza<br/>Tel: (999) 123-4567", estilo_centro))
         
-        # Usamos tablas para generar líneas sólidas en vez de guiones
+      
         def draw_line():
             line = Table([['']], colWidths=[74*mm])
             line.setStyle(TableStyle([('LINEBELOW', (0, 0), (-1, -1), 1, colors.HexColor("#334155"))]))
@@ -246,7 +246,6 @@ class GeneradorPDF:
             precio_unitario = float(prod[4])
             importe_final = float(prod[5])
             
-            # Calculamos si hubo descuento restando el total real vs el importe pagado
             subtotal_base = cant * precio_unitario
             if subtotal_base > importe_final:
                 ahorro_total += (subtotal_base - importe_final)
@@ -270,7 +269,7 @@ class GeneradorPDF:
         elementos.append(draw_line())
         elementos.append(Spacer(1, 2*mm))
 
-        # 4. TOTALES (Con USTED AHORRA dinámico)
+        # 4. TOTALES 
         total_final = float(datos_venta.get('total', 0.0))
         recibido = float(datos_venta.get('recibido', 0.0))
         cambio = float(datos_venta.get('cambio', 0.0))
@@ -298,7 +297,7 @@ class GeneradorPDF:
             ('TOPPADDING', (0, 0), (-1, -1), 2),
         ])
         
-        # Aplicamos negrita al total
+        # negrita al total
         idx_total = len(filas_totales) - 4
         estilo_totales.add('FONTNAME', (0, idx_total), (-1, idx_total), 'Helvetica-Bold')
         estilo_totales.add('FONTSIZE', (0, idx_total), (-1, idx_total), 10)

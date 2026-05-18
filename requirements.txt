@@ -1,0 +1,8 @@
+PyMuPDF==1.27.2.3
+psycopg2-binary==2.9.11
+PyQt6==6.11.0
+pyqt6_sip==13.11.1
+pyserial==3.5
+qtawesome==1.4.2
+reportlab==4.5.1
+websockets==16.0

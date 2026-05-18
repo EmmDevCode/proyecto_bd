@@ -68,7 +68,7 @@ class AperturaCajaModal(QDialog):
 
         layout.addLayout(form_layout)
 
-        # --- TOTAL EN TIEMPO REAL ---
+    
         self.lbl_total = QLabel("Total en Caja: $ 0.00")
         self.lbl_total.setStyleSheet("font-size: 18px; font-weight: bold; color: #2980b9; margin-top: 10px;")
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -76,7 +76,7 @@ class AperturaCajaModal(QDialog):
 
         layout.addStretch()
 
-        # --- BOTÓN DE ACCIÓN (Reutilizable) ---
+      
         self.btn_abrir = BotonConfirmar("ABRIR TURNO")
         self.btn_abrir.clicked.connect(self.abrir_turno)
         layout.addWidget(self.btn_abrir)
@@ -113,7 +113,7 @@ class AperturaCajaModal(QDialog):
         """
         
         try:
-            # CORRECCIÓN: Usamos fetch_one porque el SQL tiene un RETURNING
+        
             res = self.db.fetch_one(query, (self.id_cajero, total_fondo, billetes, monedas))
             if res:
                 self.id_corte_generado = res[0]

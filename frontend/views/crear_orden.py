@@ -57,9 +57,7 @@ class CreateOrderWindow(QDialog):
             tarjeta.setGraphicsEffect(shadow)
             return tarjeta
 
-        # ==========================================
-        # 1. TOP SECTION (Tarjetas de Cliente y Stock)
-        # ==========================================
+      
         top_layout = QHBoxLayout()
         top_layout.setSpacing(20)
         
@@ -121,9 +119,7 @@ class CreateOrderWindow(QDialog):
         
         main_layout.addLayout(top_layout, stretch=1)
 
-        # ==========================================
-        # 2. BÚSQUEDA Y CARRITO (Tarjeta Principal)
-        # ==========================================
+      
         card_carrito = crear_tarjeta()
         carrito_layout = QVBoxLayout(card_carrito)
         carrito_layout.setContentsMargins(20, 20, 20, 20)
@@ -149,9 +145,7 @@ class CreateOrderWindow(QDialog):
         
         main_layout.addWidget(card_carrito, stretch=5)
 
-        # ==========================================
-        # 4. FOOTER Y BOTONES (Tarjeta Inferior)
-        # ==========================================
+    
         card_footer = crear_tarjeta()
         card_footer.setStyleSheet("""
             QFrame { background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; border-top: 4px solid #3b82f6; }
@@ -237,7 +231,6 @@ class CreateOrderWindow(QDialog):
 
     def cargar_datos_para_edicion(self):
         try:
-            # AQUÍ YA PEDIMOS LA COLUMNA cliente_temporal A LA BD
             query = """
                 SELECT v.id_venta, c.nombre_completo, v.fecha, TO_CHAR(v.hora, 'HH24:MI'), v.estatus, v.cliente_temporal, v.id_cliente
                 FROM orden_venta v
@@ -255,8 +248,9 @@ class CreateOrderWindow(QDialog):
             else:
                 self.input_cliente.setText(cliente)
 
+           
             query_det = """
-                SELECT p.id_producto, p.codigo, p.nombre, d.cantidad, d.descuento, d.precio_unitario, d.subtotal
+                SELECT p.id_producto, p.codigo, p.nombre, p.unidad_medida, d.cantidad, d.descuento, d.precio_unitario, d.subtotal
                 FROM detalle_venta d
                 JOIN productos p ON d.id_producto = p.id_producto
                 WHERE d.id_venta = %s
@@ -266,9 +260,9 @@ class CreateOrderWindow(QDialog):
             carrito_lista = []
             for d in detalles_db:
                 carrito_lista.append({
-                    "id": d[0], "codigo": d[1], "nombre": d[2],
-                    "cant": float(d[3]), "desc": float(d[4]),
-                    "precio": float(d[5]), "subtotal": float(d[6])
+                    "id": d[0], "codigo": d[1], "nombre": d[2], "unidad": d[3], 
+                    "cant": float(d[4]), "desc": float(d[5]),
+                    "precio": float(d[6]), "subtotal": float(d[7])
                 })
             
             self.carrito_manager.cargar_carrito_existente(carrito_lista)
@@ -315,7 +309,7 @@ class CreateOrderWindow(QDialog):
             else:
                 nombre_ticket = "MOSTRADOR"
         else:
-            nombre_ticket = "MOSTRADOR" # Si es venta especial, no sobreescribimos la BD con texto sucio
+            nombre_ticket = "MOSTRADOR"
 
         try:
             now = datetime.datetime.now()
@@ -329,7 +323,7 @@ class CreateOrderWindow(QDialog):
                 folio_final = self.folio_editar
             else:
                 folio_final = f"OV-{now.strftime('%Y%m%d%H%M%S')}"
-                # AQUÍ YA ESTÁ AGREGADA LA COLUMNA cliente_temporal
+    
                 query_ins = """
                     INSERT INTO orden_venta (folio, id_vendedor, fecha, hora, id_cliente, cliente_temporal, total, estatus) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pendiente') RETURNING id_venta
@@ -340,7 +334,7 @@ class CreateOrderWindow(QDialog):
             for p in productos:
                 self.db.execute_query(query_det, (id_final, p['id'], p['cant'], p['precio'], p['desc'], p['subtotal']))
 
-            # Variables para que pantalla_vendedor las lea
+           
             self.folio_generado = folio_final
             
             AlertaCustom.show_success(self, "Éxito", f"Orden {folio_final} enviada a caja.\n\nCliente/Seña: {nombre_ticket}")
@@ -359,19 +353,21 @@ class CreateOrderWindow(QDialog):
         self.search_input.clear()
 
     def agregar_por_codigo_directo(self, codigo):
-        query = "SELECT id_producto, codigo, nombre, precio_venta FROM productos WHERE codigo = %s AND estatus = TRUE"
+    
+        query = "SELECT id_producto, codigo, nombre, unidad_medida, precio_venta FROM productos WHERE codigo = %s AND estatus = TRUE"
         p = self.db.fetch_one(query, (codigo,))
         if p:
-            self.carrito_manager.agregar_producto(p[0], p[1], p[2], p[3])
+            self.carrito_manager.agregar_producto(p[0], p[1], p[2], p[3], p[4])
         else:
             AlertaCustom.show_error(self, "No Encontrado", f"El código {codigo} no existe.")
 
     def abrir_buscador_avanzado(self, texto):
         def query_func(t):
-            q = "SELECT codigo, nombre, precio_venta, id_producto FROM productos WHERE estatus=TRUE AND (codigo ILIKE %s OR nombre ILIKE %s) LIMIT 50"
+            
+            q = "SELECT codigo, nombre, unidad_medida, precio_venta, id_producto FROM productos WHERE estatus=TRUE AND (codigo ILIKE %s OR nombre ILIKE %s) LIMIT 50"
             return self.db.fetch_all(q, (f"%{t}%", f"%{t}%"))
 
-        modal = GenericSearchModal("Buscar Producto", "Escribe para buscar...", ["CODIGO", "NOMBRE", "PRECIO", "ID"], query_func, self)
+        modal = GenericSearchModal("Buscar Producto", "Escribe para buscar...", ["CODIGO", "NOMBRE", "UNIDAD", "PRECIO", "ID"], query_func, self)
         if texto: modal.search_input.setText(texto)
         if modal.exec():
             self.agregar_por_codigo_directo(modal.selected_data[0])

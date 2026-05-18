@@ -143,10 +143,10 @@ class ModuloAlmacenes(QWidget):
             btns = QWidget()
             ly = QHBoxLayout(btns); ly.setContentsMargins(0,0,0,0)
             
-            btn_edit = BotonEditar()  # Ya tiene el icono, el color y el hover
+            btn_edit = BotonEditar()  
             btn_edit.clicked.connect(lambda _, id_a=fila[0]: self.abrir_formulario(id_a))
 
-            btn_del = BotonBaja()     # Ya tiene el icono de basura y es rojo
+            btn_del = BotonBaja()   
             btn_del.clicked.connect(lambda _, id_a=fila[0]: self.eliminar(id_a))
             
             ly.addWidget(btn_edit); ly.addWidget(btn_del)

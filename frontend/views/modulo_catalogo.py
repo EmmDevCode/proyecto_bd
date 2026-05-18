@@ -20,13 +20,13 @@ class FormularioProducto(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Nuevo Producto" if not self.producto_id else "Editar Producto")
-        self.setFixedWidth(480) # Lo hice un poquito más ancho para que quepa el botón
+        self.setFixedWidth(480) 
         self.setStyleSheet("background-color: white; font-size: 14px;")
         
         layout = QFormLayout(self)
         layout.setSpacing(15)
 
-        # --- CAMPO DE CÓDIGO CON BOTÓN GENERADOR ---
+     
         ly_codigo = QHBoxLayout()
         self.input_codigo = QLineEdit()
         self.input_codigo.setPlaceholderText("Escanee o escriba el código...")
@@ -83,7 +83,7 @@ class FormularioProducto(QDialog):
 
     def generar_codigo_interno(self):
         """Busca los códigos LT en la BD y genera el siguiente sin guion"""
-        # Traemos todos los códigos que empiecen con LT (tengan guion o no)
+    
         query = "SELECT codigo FROM productos WHERE codigo LIKE 'LT%'"
         try:
             resultados = self.db.fetch_all(query)
@@ -91,10 +91,10 @@ class FormularioProducto(QDialog):
             
             for fila in (resultados or []):
                 codigo_actual = fila[0]
-                # Limpiamos el texto: quitamos "LT-" y "LT" para dejar solo los números
+            
                 num_str = codigo_actual.replace("LT-", "").replace("LT", "")
                 
-                # Verificamos que lo que quedó sea un número válido
+              
                 if num_str.isdigit():
                     numero = int(num_str)
                     if numero > max_num:
@@ -102,7 +102,7 @@ class FormularioProducto(QDialog):
                         
             nuevo_numero = max_num + 1
             
-            # Formateamos SIN guion y con 4 dígitos (ej. LT0001, LT0002)
+         
             nuevo_codigo = f"LT{nuevo_numero:04d}"
             self.input_codigo.setText(nuevo_codigo)
             
@@ -112,7 +112,7 @@ class FormularioProducto(QDialog):
     def cargar_proveedores(self):
         try:
             proveedores = self.db.fetch_all("SELECT id_proveedor, nombre FROM proveedores WHERE estatus = TRUE")
-            # Volvemos a pedir que seleccionen uno obligatoriamente
+         
             self.combo_proveedor.addItem("-- Seleccione Proveedor --", None)
             for prov in (proveedores or []):
                 self.combo_proveedor.addItem(prov[1], prov[0])
@@ -243,8 +243,7 @@ class ModuloCatalogo(QWidget):
         except Exception as e:
             print(f"Error cargando catálogo: {e}")
 
-    def abrir_formulario(self, producto_id=None): # <-- 1. Le decimos que acepte un ID (por defecto None)
-        # 2. Pasamos ese ID a la clase FormularioProducto
+    def abrir_formulario(self, producto_id=None): 
         modal = FormularioProducto(self.db, producto_id, parent=self) 
         if modal.exec():
             self.cargar_tabla()

@@ -16,38 +16,38 @@ class AlertaCustom(QDialog):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        # Paleta de colores modernizada
+        
         colores = {
             "success": {
-                "principal": "#10b981",    # Emerald
+                "principal": "#10b981",    
                 "secundario": "#059669",
                 "fondo": "#ecfdf5",
                 "borde": "#a7f3d0",
                 "icono": "✓"
             },
             "info": {
-                "principal": "#3b82f6",    # Blue
+                "principal": "#3b82f6",    
                 "secundario": "#2563eb", 
                 "fondo": "#eff6ff",
                 "borde": "#bfdbfe",
                 "icono": "ℹ"
             },
             "warning": {
-                "principal": "#f59e0b",    # Amber
+                "principal": "#f59e0b",  
                 "secundario": "#d97706",
                 "fondo": "#fffbeb",
                 "borde": "#fde68a",
                 "icono": "⚠"
             },
             "error": {
-                "principal": "#ef4444",    # Red
+                "principal": "#ef4444",   
                 "secundario": "#dc2626",
                 "fondo": "#fef2f2",
                 "borde": "#fecaca",
                 "icono": "✕"
             },
             "confirm": {
-                "principal": "#6366f1",    # Indigo
+                "principal": "#6366f1",  
                 "secundario": "#4f46e5",
                 "fondo": "#eef2ff",
                 "borde": "#c7d2fe",
@@ -57,7 +57,7 @@ class AlertaCustom(QDialog):
         
         tema = colores.get(tipo, colores["info"])
         
-        # Contenedor principal con fondo (Estilo Flat moderno)
+        # Contenedor principal con fondo 
         contenedor = QFrame(self)
         contenedor.setObjectName("contenedorAlerta")
         contenedor.setStyleSheet(f"""
@@ -67,7 +67,7 @@ class AlertaCustom(QDialog):
                 border-radius: 16px;
             }}
         """)
-        # Agregar sombra suave al contenedor
+       
         from PyQt6.QtWidgets import QGraphicsDropShadowEffect
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
@@ -87,7 +87,7 @@ class AlertaCustom(QDialog):
         header_layout = QHBoxLayout()
         header_layout.setSpacing(12)
         
-        # Círculo con icono (Fondo suave)
+        # Círculo con icono 
         circulo_icono = QLabel(tema['icono'])
         circulo_icono.setFixedSize(48, 48)
         circulo_icono.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -116,7 +116,7 @@ class AlertaCustom(QDialog):
         header_layout.addWidget(lbl_titulo)
         header_layout.addStretch()
         
-        # Botón cerrar (X)
+        # Botón cerrar 
         btn_cerrar = QPushButton("×")
         btn_cerrar.setFixedSize(32, 32)
         btn_cerrar.setCursor(Qt.CursorShape.PointingHandCursor)

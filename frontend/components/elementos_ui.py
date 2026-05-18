@@ -171,7 +171,6 @@ class BotonConfirmar(QPushButton):
     """Botón grande para acciones principales como cobrar o confirmar compras"""
     def __init__(self, texto="Confirmar", parent=None):
         super().__init__(f"  {texto}", parent)
-        # Usamos el icono de check-circle (o puedes usar 'fa5s.box' si prefieres la caja)
         self.setIcon(qta.icon('fa5s.check-circle', color='white'))
         
         self.setStyleSheet("""
@@ -227,7 +226,7 @@ class BadgeBooleano(QPushButton):
         
         if activo:
             self.setText(f"  {texto_v}")
-            self.setIcon(qta.icon('fa5s.star', color='white')) # Icono de estrella para mayoreo
+            self.setIcon(qta.icon('fa5s.star', color='white'))
             self.setStyleSheet("""
                 QPushButton {
                     background-color: #3b82f6; color: white;
@@ -250,7 +249,7 @@ class BotonVerDetalles(QPushButton):
     """Botón para visualizar información extra (Caja, Historial, etc)"""
     def __init__(self, texto="Ver Detalles", parent=None):
         super().__init__(f"  {texto}", parent)
-        self.setIcon(qta.icon('fa5s.eye', color='white')) # Icono de Ojo
+        self.setIcon(qta.icon('fa5s.eye', color='white')) 
         self.setStyleSheet("""
             QPushButton {
                 background-color: #0ea5e9; color: white; 
@@ -264,7 +263,7 @@ class BotonImprimir(QPushButton):
     """Botón para imprimir o reimprimir tickets y cotizaciones"""
     def __init__(self, texto="Reimprimir Ticket", parent=None):
         super().__init__(f"  {texto}", parent)
-        self.setIcon(qta.icon('fa5s.print', color='white')) # Icono de Impresora
+        self.setIcon(qta.icon('fa5s.print', color='white')) 
         self.setStyleSheet("""
             QPushButton {
                 background-color: #8b5cf6; color: white; 

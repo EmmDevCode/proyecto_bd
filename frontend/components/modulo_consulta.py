@@ -3,8 +3,6 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAbstract
 from PyQt6.QtCore import Qt
 import qtawesome as qta
 import datetime
-
-# ¡Importamos el FiltroFecha!
 from frontend.components.elementos_ui import DataTable, BotonBuscar, FiltroFecha
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
@@ -33,14 +31,13 @@ class ModuloConsulta(QWidget):
         header = QHBoxLayout()
         self.lbl_titulo = QLabel(f"<b>{titulo}</b>")
         self.lbl_titulo.setStyleSheet("font-size: 18px; color: #2c3e50;")
-        
-        # --- NUEVO: FILTRO DE FECHA ---
+      
         self.container_fecha = QWidget()
         ly_fecha = QHBoxLayout(self.container_fecha)
         ly_fecha.setContentsMargins(0,0,0,0)
         ly_fecha.setSpacing(5)
 
-        # Icono de calendario en lugar de emoji
+        # Icono de calendario 
         self.icon_cal = QLabel()
         self.icon_cal.setPixmap(qta.icon('fa5s.calendar-alt', color='#7f8c8d').pixmap(18, 18))
         
@@ -55,7 +52,7 @@ class ModuloConsulta(QWidget):
         ly_fecha.addWidget(self.lbl_fecha_txt)
         ly_fecha.addWidget(self.filtro_fecha)
         
-        # MAGIA: Si la consulta SQL no usa fecha (no tiene '%s'), ocultamos el calendario
+
         if "%s" not in self.query_base:
             self.container_fecha.hide()
     
@@ -70,7 +67,7 @@ class ModuloConsulta(QWidget):
 
         header.addWidget(self.lbl_titulo)
         header.addStretch()
-        header.addWidget(self.container_fecha) # Añadimos el contenedor con el icono
+        header.addWidget(self.container_fecha) 
         header.addSpacing(15)
         header.addWidget(self.search_input)
         layout.addLayout(header)
@@ -80,7 +77,7 @@ class ModuloConsulta(QWidget):
         self.tabla.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tabla.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         
-        # Conectar eventos
+      
         if self.action_callback:
             self.tabla.itemDoubleClicked.connect(self.gestionar_doble_clic)
             
@@ -91,12 +88,12 @@ class ModuloConsulta(QWidget):
         layout.addWidget(self.tabla)
 
     def cargar_datos_del_dia(self):
-        # Obtenemos la fecha que el usuario seleccionó en el QDateEdit
+
         qdate = self.filtro_fecha.date()
         fecha_str = qdate.toString("yyyy-MM-dd") # Formato exacto para PostgreSQL
         
         try:
-            # Validamos si la query requiere la fecha o no
+           
             if "%s" in self.query_base:
                 resultados = self.db.fetch_all(self.query_base, (fecha_str,))
             else:

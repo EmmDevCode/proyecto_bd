@@ -148,7 +148,7 @@ class ModuloClientes(QWidget):
             ly = QHBoxLayout(btns)
             ly.setContentsMargins(0, 0, 0, 0)
             
-            # ¡Mira qué limpio queda el código ahora!
+            
             btn_edit = BotonEditar("Editar")
             btn_edit.clicked.connect(lambda _, id_c=fila[0]: self.abrir_formulario(id_c))
             
