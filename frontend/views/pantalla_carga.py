@@ -1,6 +1,7 @@
 # frontend/views/loading_screen.py
 import time
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar, QFrame, QApplication
+import qtawesome as qta
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar, QFrame, QApplication, QGraphicsDropShadowEffect
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from backend.bd_conexion import DatabaseConnection
 
@@ -34,6 +35,7 @@ class LoadingScreen(QWidget):
 
     def init_ui(self):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setObjectName("LoadingScreen")
         
         # Tamaño responsive
@@ -41,91 +43,98 @@ class LoadingScreen(QWidget):
         ancho = int(screen.width() * 0.25)
         alto = int(screen.height() * 0.35)
         
-        # Límites razonables
-        ancho = max(400, min(ancho, 550))
-        alto = max(280, min(alto, 380))
+        # Límites razonables ajustados para dar respiro al contenido y la sombra
+        ancho = max(450, min(ancho, 600))
         
-        self.setFixedSize(ancho, alto)
+        # Fijamos solo el ancho y un mínimo de alto para evitar que se achocque
+        self.setFixedWidth(ancho)
+        self.setMinimumHeight(350)
         
-        # Estilo específico para esta pantalla (sin afectar al tema global)
-        self.setStyleSheet("""
-            #LoadingScreen {
-                background-color: #f8f9fa;
-            }
-        """)
+        # Layout principal de la ventana para alojar el contenedor con sombra
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(20, 20, 20, 20)
         
-        # Contenedor principal
-        contenedor = QFrame(self)
-        contenedor.setGeometry(0, 0, ancho, alto)
+        # Contenedor principal estilo tarjeta blanca
+        contenedor = QFrame()
         contenedor.setObjectName("contenedorCarga")
         contenedor.setStyleSheet("""
-            #contenedorCarga {
-                background-color: white;
-                border-radius: 10px;
-                border: 1px solid #dee2e6;
+            QFrame#contenedorCarga {
+                background-color: #ffffff;
+                border-radius: 20px;
             }
         """)
         
-        # Layout
-        margen = int(ancho * 0.08)
+        # Sombra moderna tipo web
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(30)
+        shadow.setColor(Qt.GlobalColor.black)
+        shadow.setOffset(0, 10)
+        # Bajar opacidad a la sombra para que se vea premium
+        color = shadow.color()
+        color.setAlpha(40)
+        shadow.setColor(color)
+        
+        contenedor.setGraphicsEffect(shadow)
+        main_layout.addWidget(contenedor)
+        
+        # Layout interno del contenedor
         layout = QVBoxLayout(contenedor)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.setSpacing(int(alto * 0.05))
-        layout.setContentsMargins(margen, margen, margen, margen)
+        layout.setSpacing(15)
+        layout.setContentsMargins(40, 40, 40, 40)
         
-        # Icono
-        icono_label = QLabel("🔧")
+        # Icono principal usando qtawesome
+        icono_label = QLabel()
         icono_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font_size_icono = int(ancho * 0.1)
-        icono_label.setStyleSheet(f"""
-            font-size: {font_size_icono}px;
-            background-color: transparent;
-        """)
+        try:
+            icono_label.setPixmap(qta.icon('fa5s.store', color='#3b82f6').pixmap(64, 64))
+        except Exception:
+            icono_label.setText("🔧")
+            icono_label.setStyleSheet("font-size: 64px;")
         layout.addWidget(icono_label)
         
         # Logo
         self.logo_label = QLabel("EL TORNILLO FELIZ")
         self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font_size_logo = int(ancho * 0.06)
-        self.logo_label.setStyleSheet(f"""
-            font-size: {font_size_logo}px; 
-            font-weight: bold; 
-            color: #2c3e50;
+        self.logo_label.setStyleSheet("""
+            font-size: 18pt; 
+            font-weight: 800; 
+            color: #1e293b;
             letter-spacing: 1px;
-            background-color: transparent;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         """)
         layout.addWidget(self.logo_label)
+
+        layout.addSpacing(5)
 
         # Estado
         self.status_label = QLabel("Verificando conexión con la base de datos...")
         self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setWordWrap(True)
-        font_size_status = int(ancho * 0.032)
-        self.status_label.setStyleSheet(f"""
-            font-size: {font_size_status}px; 
-            color: #6c757d;
-            background-color: transparent;
-            padding: 5px;
+        self.status_label.setStyleSheet("""
+            font-size: 11pt; 
+            color: #64748b;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         """)
         layout.addWidget(self.status_label)
 
-        # Barra de progreso - IMPORTANTE: Usar un nombre de objeto único
+        layout.addSpacing(15)
+
+        # Barra de progreso delgada y elegante
         self.progress_bar = QProgressBar()
         self.progress_bar.setObjectName("barraProgresoUnica")
         self.progress_bar.setValue(0)
-        altura_barra = int(alto * 0.06)
-        self.progress_bar.setFixedHeight(altura_barra)
+        self.progress_bar.setTextVisible(False) 
+        self.progress_bar.setFixedHeight(8)
         self.progress_bar.setStyleSheet("""
             QProgressBar#barraProgresoUnica {
-                border: 1px solid #ced4da;
-                border-radius: 6px;
-                text-align: center;
-                background-color: #f1f3f5;
+                border: none;
+                border-radius: 4px;
+                background-color: #e2e8f0;
             }
             QProgressBar#barraProgresoUnica::chunk {
-                background-color: #3498db;
-                border-radius: 5px;
-                margin: 1px;
+                background-color: #3b82f6;
+                border-radius: 4px;
             }
         """)
         layout.addWidget(self.progress_bar)
@@ -133,12 +142,11 @@ class LoadingScreen(QWidget):
         # Porcentaje
         self.porcentaje_label = QLabel("0%")
         self.porcentaje_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font_size_porcentaje = int(ancho * 0.035)
-        self.porcentaje_label.setStyleSheet(f"""
-            font-size: {font_size_porcentaje}px; 
-            font-weight: bold;
-            color: #495057;
-            background-color: transparent;
+        self.porcentaje_label.setStyleSheet("""
+            font-size: 11pt; 
+            font-weight: 700;
+            color: #3b82f6;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         """)
         layout.addWidget(self.porcentaje_label)
         
@@ -166,46 +174,53 @@ class LoadingScreen(QWidget):
     def on_verification_finished(self, success):
         if success:
             self.status_label.setText("¡Conexión exitosa! Cargando sistema...")
-            self.status_label.setStyleSheet(f"""
-                font-size: {int(self.width() * 0.032)}px; 
-                color: #28a745; 
-                font-weight: 600;
-                background-color: transparent;
+            self.status_label.setStyleSheet("""
+                font-size: 11pt; 
+                color: #10b981;
+                font-family: 'Segoe UI', system-ui, sans-serif;
             """)
             self.porcentaje_label.setText("✓ Completado")
-            self.porcentaje_label.setStyleSheet(f"""
-                font-size: {int(self.width() * 0.035)}px; 
-                font-weight: bold;
-                color: #28a745;
-                background-color: transparent;
+            self.porcentaje_label.setStyleSheet("""
+                font-size: 11pt; 
+                font-weight: 700;
+                color: #10b981;
+                font-family: 'Segoe UI', system-ui, sans-serif;
+            """)
+            self.progress_bar.setStyleSheet("""
+                QProgressBar#barraProgresoUnica {
+                    border: none;
+                    border-radius: 4px;
+                    background-color: #e2e8f0;
+                }
+                QProgressBar#barraProgresoUnica::chunk {
+                    background-color: #10b981;
+                    border-radius: 4px;
+                }
             """)
             QThread.msleep(300)
             self.connection_ready.emit(self.user_data)
         else:
             self.status_label.setText("Error crítico: No se pudo conectar a la base de datos local.")
-            self.status_label.setStyleSheet(f"""
-                font-size: {int(self.width() * 0.032)}px; 
-                color: #dc3545; 
-                font-weight: 600;
-                background-color: transparent;
+            self.status_label.setStyleSheet("""
+                font-size: 11pt; 
+                color: #ef4444; 
+                font-family: 'Segoe UI', system-ui, sans-serif;
             """)
             self.porcentaje_label.setText("✗ Error")
-            self.porcentaje_label.setStyleSheet(f"""
-                font-size: {int(self.width() * 0.035)}px; 
-                font-weight: bold;
-                color: #dc3545;
-                background-color: transparent;
+            self.porcentaje_label.setStyleSheet("""
+                font-size: 11pt; 
+                font-weight: 700;
+                color: #ef4444;
+                font-family: 'Segoe UI', system-ui, sans-serif;
             """)
             self.progress_bar.setStyleSheet("""
                 QProgressBar#barraProgresoUnica {
-                    border: 1px solid #ced4da;
-                    border-radius: 6px;
-                    text-align: center;
-                    background-color: #f1f3f5;
+                    border: none;
+                    border-radius: 4px;
+                    background-color: #e2e8f0;
                 }
                 QProgressBar#barraProgresoUnica::chunk {
-                    background-color: #dc3545;
-                    border-radius: 5px;
-                    margin: 1px;
+                    background-color: #ef4444;
+                    border-radius: 4px;
                 }
             """)

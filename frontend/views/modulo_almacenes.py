@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QLineEdit, QPushButton, QTableWidgetItem,
                              QHeaderView, QDialog, QFormLayout)
 from PyQt6.QtCore import Qt
+import qtawesome as qta
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
 from frontend.components.elementos_ui import DataTable
@@ -20,27 +21,48 @@ class FormularioAlmacen(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Nuevo Almacén" if not self.almacen_id else "Editar Almacén")
-        self.setFixedWidth(400)
-        self.setStyleSheet("background-color: white; font-size: 14px;")
+        self.setFixedWidth(450)
+        self.setStyleSheet("background-color: #f8fafc; font-size: 14px;")
         
         layout = QFormLayout(self)
-        layout.setSpacing(15)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
 
+        estilo_input = """
+            QLineEdit { border: 2px solid #e2e8f0; border-radius: 8px; padding: 10px; background-color: white; color: #1e293b; }
+            QLineEdit:focus { border: 2px solid #3b82f6; }
+        """
+        
         self.input_codigo = QLineEdit()
         self.input_codigo.setPlaceholderText("Ej. ALM-01")
+        self.input_codigo.setStyleSheet(estilo_input)
+        
         self.input_nombre = QLineEdit()
+        self.input_nombre.setStyleSheet(estilo_input)
+        
         self.input_responsable = QLineEdit()
+        self.input_responsable.setStyleSheet(estilo_input)
 
-        layout.addRow("Código:", self.input_codigo)
-        layout.addRow("Nombre del Almacén:", self.input_nombre)
-        layout.addRow("Responsable:", self.input_responsable)
+        lbl_cod = QLabel("Código:"); lbl_cod.setStyleSheet("font-weight: bold; color: #475569;")
+        lbl_nom = QLabel("Nombre del Almacén:"); lbl_nom.setStyleSheet("font-weight: bold; color: #475569;")
+        lbl_resp = QLabel("Responsable:"); lbl_resp.setStyleSheet("font-weight: bold; color: #475569;")
+
+        layout.addRow(lbl_cod, self.input_codigo)
+        layout.addRow(lbl_nom, self.input_nombre)
+        layout.addRow(lbl_resp, self.input_responsable)
 
         btn_layout = QHBoxLayout()
-        btn_guardar = BotonGuardar("Guardar Almacen")
+        btn_guardar = BotonGuardar("  Guardar Almacén")
+        btn_guardar.setIcon(qta.icon('fa5s.save', color='white'))
         btn_guardar.clicked.connect(self.guardar)
         
-        btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet("background-color: #95a5a6; color: white; padding: 10px;")
+        btn_cancelar = QPushButton("  Cancelar")
+        btn_cancelar.setIcon(qta.icon('fa5s.times', color='#64748b'))
+        btn_cancelar.setStyleSheet("""
+            QPushButton { background-color: transparent; color: #64748b; padding: 10px; font-weight: bold; border: 2px solid #e2e8f0; border-radius: 8px; }
+            QPushButton:hover { background-color: #f1f5f9; color: #334155; border: 2px solid #cbd5e1; }
+        """)
+        btn_cancelar.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_cancelar.clicked.connect(self.reject)
         
         btn_layout.addWidget(btn_cancelar)
@@ -86,13 +108,20 @@ class ModuloAlmacenes(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
 
         header = QHBoxLayout()
-        lbl_titulo = QLabel("GESTIÓN DE UBICACIONES Y ALMACENES")
-        lbl_titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
+        
+        lbl_icono = QLabel()
+        lbl_icono.setPixmap(qta.icon('fa5s.boxes', color='#3b82f6').pixmap(28, 28))
+        header.addWidget(lbl_icono)
+        
+        lbl_titulo = QLabel("GESTIÓN DE ALMACENES")
+        lbl_titulo.setStyleSheet("font-size: 24px; font-weight: 800; color: #0f172a;")
         header.addWidget(lbl_titulo)
         header.addStretch()
 
-        self.btn_nuevo = BotonNuevo("Registrar Almacén")
-        self.btn_nuevo.setStyleSheet("background-color: #27ae60; color: white; padding: 10px 20px;")
+        self.btn_nuevo = BotonNuevo("  Registrar Almacén")
+        self.btn_nuevo.setIcon(qta.icon('fa5s.plus', color='white'))
+        self.btn_nuevo.setStyleSheet("background-color: #10b981; color: white; font-weight: bold; padding: 12px 20px; border-radius: 8px; border: none;")
+        self.btn_nuevo.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_nuevo.clicked.connect(lambda: self.abrir_formulario())
         header.addWidget(self.btn_nuevo)
         layout.addLayout(header)

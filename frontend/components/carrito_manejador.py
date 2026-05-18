@@ -1,101 +1,128 @@
-# frontend/components/carrito_manager.py
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAbstractItemView, QTableWidgetItem
-from PyQt6.QtCore import Qt
+# frontend/components/carrito_manejador.py
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAbstractItemView, QTableWidgetItem, QHeaderView
+from PyQt6.QtCore import Qt, QSettings
 from frontend.components.elementos_ui import DataTable
 
 class CarritoManager(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.productos = [] # Lista interna de diccionarios
+        self.productos = [] 
+        self.settings = QSettings("Ferrosoft", "PuntoDeVenta") 
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # 1. La Tabla del Carrito
-        self.tabla = DataTable(["", "codigo", "Producto", "Cant.", "desc", "Precio U.", "Subtotal"])
-        self.tabla.setEditTriggers(QAbstractItemView.EditTrigger.DoubleClicked)
+        # 1. Cambiamos la cabecera para que diga Desc. (%)
+        self.tabla = DataTable(["Código", "Descripción", "Cant.", "Desc. (%)", "Precio U.", "Importe"])
+        
+        self.tabla.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
+        self.tabla.setEditTriggers(QAbstractItemView.EditTrigger.DoubleClicked | 
+                                   QAbstractItemView.EditTrigger.AnyKeyPressed | 
+                                   QAbstractItemView.EditTrigger.EditKeyPressed)
+        
+        self.tabla.setAlternatingRowColors(True) 
+        self.tabla.setStyleSheet("""
+            QTableWidget { font-size: 14px; gridline-color: #cbd5e1; selection-background-color: #bfdbfe; selection-color: black; }
+            QHeaderView::section { font-weight: bold; background-color: #1e293b; color: white; padding: 5px; border: 1px solid #334155; }
+        """)
+
+        header = self.tabla.horizontalHeader()
+        for i in range(self.tabla.columnCount()):
+            width = self.settings.value(f"carrito_orden_col_{i}", None)
+            if width:
+                self.tabla.setColumnWidth(i, int(width))
+            else:
+                if i == 0: self.tabla.setColumnWidth(i, 150)
+                elif i == 1: header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch) 
+                else: self.tabla.setColumnWidth(i, 120)
+                
+        header.sectionResized.connect(self.guardar_ancho_columnas)
         self.tabla.itemChanged.connect(self.recalcular_totales)
         layout.addWidget(self.tabla)
 
         # 2. El Totalizador
-        footer = QHBoxLayout()
-        footer.addStretch()
-        self.lbl_total = QLabel("Total: $0.00")
-        self.lbl_total.setStyleSheet("font-size: 24px; font-weight: bold; color: #2c3e50;")
-        footer.addWidget(self.lbl_total)
-        layout.addLayout(footer)
+        self.lbl_total = QLabel("TOTAL: $0.00")
+        self.lbl_total.setStyleSheet("""
+            font-size: 28px; font-weight: 900; color: #0f172a; 
+            padding: 0px 15px; background: transparent;
+        """)
+
+    def guardar_ancho_columnas(self, logicalIndex, oldSize, newSize):
+        self.settings.setValue(f"carrito_orden_col_{logicalIndex}", newSize)
 
     def agregar_producto(self, id_prod, codigo, nombre, precio):
-        """Añade un producto nuevo al carrito (Ej. desde el escáner)"""
         self.productos.append({
             "id": id_prod, "codigo": codigo, "nombre": nombre, 
             "cant": 1.0, "desc": 0.0, 
             "precio": float(precio), "subtotal": float(precio)
         })
         self.refrescar_tabla()
+        
+        ultima_fila = len(self.productos) - 1
+        self.tabla.setCurrentCell(ultima_fila, 2)
 
     def cargar_carrito_existente(self, lista_productos):
-        """Carga una lista de productos de golpe (Para el Modo Edición)"""
         self.productos = lista_productos
         self.refrescar_tabla()
 
     def bloquear_edicion(self):
-        """Bloquea la tabla para el Modo Vista Previa"""
         self.tabla.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
     def desbloquear_edicion(self):
-        """Desbloquea la tabla para el Modo Edición"""
-        self.tabla.setEditTriggers(QAbstractItemView.EditTrigger.DoubleClicked)
+        self.tabla.setEditTriggers(QAbstractItemView.EditTrigger.DoubleClicked | QAbstractItemView.EditTrigger.AnyKeyPressed)
 
     def refrescar_tabla(self):
-        """Dibuja los items y bloquea las celdas que no son Cantidad ni Descuento"""
         self.tabla.blockSignals(True) 
         self.tabla.setRowCount(len(self.productos))
         
         total = 0.0
         for i, prod in enumerate(self.productos):
             items = [
-                QTableWidgetItem(">"),
                 QTableWidgetItem(prod['codigo']),
                 QTableWidgetItem(prod['nombre']),
-                QTableWidgetItem(str(prod['cant'])),   # Col 3: Cant
-                QTableWidgetItem(str(prod['desc'])),   # Col 4: Desc
+                QTableWidgetItem(str(prod['cant'])),   
+                QTableWidgetItem(str(prod['desc'])),   
                 QTableWidgetItem(f"{prod['precio']:.2f}"),
                 QTableWidgetItem(f"{prod['subtotal']:.2f}")
             ]
             
             for col, item in enumerate(items):
-                if col not in [3, 4]:
+                if col not in [2, 3]:
                     item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 else:
-                    item.setBackground(Qt.GlobalColor.yellow) 
+                    item.setBackground(Qt.GlobalColor.yellow)
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter) 
                 self.tabla.setItem(i, col, item)
             
             total += prod['subtotal']
             
-        self.lbl_total.setText(f"Total: ${total:.2f}")
+        self.lbl_total.setText(f"TOTAL: ${total:,.2f}")
         self.tabla.blockSignals(False)
 
     def recalcular_totales(self, item):
-        """Se activa cuando el usuario edita la cantidad o descuento"""
         row = item.row()
         col = item.column()
         
-        if col in [3, 4]: 
+        if col in [2, 3]: 
             try:
                 nuevo_valor = float(item.text())
-                if col == 3: self.productos[row]['cant'] = nuevo_valor
-                elif col == 4: self.productos[row]['desc'] = nuevo_valor
+                if col == 2: self.productos[row]['cant'] = nuevo_valor
+                elif col == 3: self.productos[row]['desc'] = nuevo_valor
                 
                 p = self.productos[row]
-                self.productos[row]['subtotal'] = (p['precio'] * p['cant']) - p['desc']
+                
+                # --- NUEVA LÓGICA DE PORCENTAJES ---
+                subtotal_bruto = p['precio'] * p['cant']
+                monto_descuento = subtotal_bruto * (p['desc'] / 100.0) # Convertimos el % a dinero
+                self.productos[row]['subtotal'] = subtotal_bruto - monto_descuento
+                
                 self.refrescar_tabla()
+                self.tabla.setCurrentCell(row, col)
             except ValueError:
                 pass 
 
     def obtener_datos(self):
-        """Devuelve los productos y el total actual para guardarlos en BD"""
         total = sum(p['subtotal'] for p in self.productos)
         return self.productos, total

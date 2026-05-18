@@ -1,7 +1,8 @@
-# frontend/views/login_window.py
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QMessageBox, QFrame, QApplication)
+import qtawesome as qta
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QMessageBox, 
+                             QFrame, QApplication, QGraphicsDropShadowEffect, QLineEdit)
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QScreen
+from PyQt6.QtGui import QFont, QScreen, QColor, QIcon
 from backend.servicio_auth import AuthService
 from frontend.components.elementos_ui import FormInput, PrimaryButton
 
@@ -16,175 +17,214 @@ class LoginWindow(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("Ferresoft - Acceso al Sistema")
+        self.setObjectName("LoginWindow")
         
-        # Tamaño responsive basado en la pantalla
         screen = QApplication.primaryScreen().availableGeometry()
-        ancho = int(screen.width() * 0.28)  # 28% del ancho de pantalla
-        alto = int(screen.height() * 0.55)   # 55% del alto de pantalla
         
-        # Límites para que no sea ni muy pequeño ni muy grande
-        ancho = max(380, min(ancho, 500))
-        alto = max(480, min(alto, 600))
+        ancho = max(450, int(screen.width() * 0.35))
+        ancho = min(ancho, 600)
+        
+        alto = max(600, int(screen.height() * 0.70))
+        alto = min(alto, 750)
         
         self.setFixedSize(ancho, alto)
-        self.setStyleSheet("background-color: #f4f6f9;")
         
-        # Contenedor principal
-        contenedor = QFrame(self)
-        contenedor.setGeometry(0, 0, ancho, alto)
-        contenedor.setStyleSheet("""
-            QFrame {
-                background-color: white;
-                border-radius: 8px;
-                border: 1px solid #dcdde1;
+        self.setStyleSheet("""
+            QWidget#LoginWindow {
+                background-color: #e4ebf5;
             }
         """)
         
-        # Layout con márgenes proporcionales
-        margen_h = int(ancho * 0.12)  # 12% de margen horizontal
-        margen_v = int(alto * 0.1)     # 10% de margen vertical
+        main_layout = QVBoxLayout(self)
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        contenedor = QFrame()
+        card_width = int(ancho * 0.88)
+        card_height = int(alto * 0.88)
+        contenedor.setFixedSize(card_width, card_height)
+        
+        contenedor.setStyleSheet("""
+            QFrame#LoginCard {
+                background-color: #ffffff;
+                border-radius: 20px;
+            }
+        """)
+        contenedor.setObjectName("LoginCard")
+        main_layout.addWidget(contenedor)
+        
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(30)
+        shadow.setColor(QColor(0, 0, 0, 25))
+        shadow.setOffset(0, 10)
+        contenedor.setGraphicsEffect(shadow)
         
         layout = QVBoxLayout(contenedor)
         layout.setSpacing(int(alto * 0.03))
+        
+        margen_h = int(card_width * 0.12)
+        margen_v = int(card_height * 0.10)
         layout.setContentsMargins(margen_h, margen_v, margen_h, margen_v)
         
-        # Logo / Título
+        icono_superior = QLabel()
+        icono_superior.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        try:
+            icono_superior.setPixmap(qta.icon('fa5s.store', color='#2563eb').pixmap(60, 60))
+        except Exception:
+            pass
+        layout.addWidget(icono_superior)
+        
         titulo_principal = QLabel("FERRETERÍA")
         titulo_principal.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Tamaño de fuente responsive
-        font_size_titulo = int(ancho * 0.07)
-        titulo_principal.setStyleSheet(f"""
-            font-size: {font_size_titulo}px; 
-            font-weight: bold; 
-            color: #2c3e50;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
+        titulo_principal.setStyleSheet("""
+            font-size: 24pt; 
+            font-weight: 800; 
+            color: #1e293b;
+            letter-spacing: 1px;
+            margin-top: 5px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         """)
         layout.addWidget(titulo_principal)
         
-        # Línea separadora
-        separador = QFrame()
-        separador.setFrameShape(QFrame.Shape.HLine)
-        separador.setStyleSheet("background-color: #ecf0f1; max-height: 2px;")
-        layout.addWidget(separador)
-
-        # Subtítulo
-        self.title_label = QLabel("Inicio de Sesión")
+        self.title_label = QLabel("Ingresa a tu cuenta")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font_size_subtitulo = int(ancho * 0.045)
-        self.title_label.setStyleSheet(f"""
-            font-size: {font_size_subtitulo}px; 
-            font-weight: 600; 
-            color: #34495e;
-            margin: 10px 0px;
+        self.title_label.setStyleSheet("""
+            font-size: 11pt; 
+            color: #64748b;
+            margin-bottom: 25px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         """)
         layout.addWidget(self.title_label)
 
-        # Campo Usuario
-        font_size_label = int(ancho * 0.032)
-        label_usuario = QLabel("Usuario:")
-        label_usuario.setStyleSheet(f"""
-            font-size: {font_size_label}px; 
-            font-weight: bold; 
-            color: #576574;
-            margin-bottom: -15px;
-        """)
-        layout.addWidget(label_usuario)
-        
-        self.user_input = FormInput("Usuario")
-        altura_input = int(alto * 0.07)
-        self.user_input.setMinimumHeight(altura_input)
-        font_size_input = int(ancho * 0.035)
-        self.user_input.setStyleSheet(f"""
-            QLineEdit {{
-                border: 1.5px solid #dcdde1;
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: {font_size_input}px;
-                background-color: white;
-                color: #2f3640;
-            }}
-            QLineEdit:focus {{
-                border: 1.5px solid #3498db;
-                background-color: #f8f9fa;
-            }}
-        """)
-        layout.addWidget(self.user_input)
+        altura_input = int(alto * 0.075)
 
-        # Campo PIN
-        label_pin = QLabel("PIN (4 dígitos):")
-        label_pin.setStyleSheet(f"""
-            font-size: {font_size_label}px; 
-            font-weight: bold; 
-            color: #576574;
-            margin-bottom: -15px;
+        user_group = QVBoxLayout()
+        user_group.setSpacing(6)
+        
+        label_usuario = QLabel("USUARIO")
+        label_usuario.setStyleSheet("""
+            font-size: 10pt; 
+            font-weight: 700; 
+            color: #64748b;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         """)
-        layout.addWidget(label_pin)
+        user_group.addWidget(label_usuario)
+        
+        self.user_input = FormInput("Ej. admin")
+        try:
+            icon_user = qta.icon('fa5s.user', color='#94a3b8')
+            self.user_input.addAction(icon_user, QLineEdit.ActionPosition.LeadingPosition)
+        except Exception:
+            pass
+            
+        self.user_input.setMinimumHeight(altura_input)
+        self.user_input.setStyleSheet("""
+            QLineEdit {
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 5px 15px;
+                font-size: 12pt;
+                background-color: #f8fafc;
+                color: #0f172a;
+                font-family: 'Segoe UI', system-ui, sans-serif;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3b82f6;
+                background-color: #ffffff;
+            }
+        """)
+        user_group.addWidget(self.user_input)
+        layout.addLayout(user_group)
+
+        layout.addSpacing(int(alto * 0.02))
+
+        pin_group = QVBoxLayout()
+        pin_group.setSpacing(6)
+        
+        label_pin = QLabel("PIN DE SEGURIDAD")
+        label_pin.setStyleSheet("""
+            font-size: 10pt; 
+            font-weight: 700; 
+            color: #64748b;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        """)
+        pin_group.addWidget(label_pin)
         
         self.pin_input = FormInput("****")
         self.pin_input.setEchoMode(FormInput.EchoMode.Password)
         self.pin_input.setMaxLength(4)
+        
+        try:
+            icon_lock = qta.icon('fa5s.lock', color='#94a3b8')
+            self.pin_input.addAction(icon_lock, QLineEdit.ActionPosition.LeadingPosition)
+        except Exception:
+            pass
+            
         self.pin_input.setMinimumHeight(altura_input)
-        self.pin_input.setStyleSheet(f"""
-            QLineEdit {{
-                border: 1.5px solid #dcdde1;
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: {font_size_input}px;
-                background-color: white;
-                color: #2f3640;
-            }}
-            QLineEdit:focus {{
-                border: 1.5px solid #3498db;
-                background-color: #f8f9fa;
-            }}
+        self.pin_input.setStyleSheet("""
+            QLineEdit {
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 5px 15px;
+                font-size: 12pt;
+                background-color: #f8fafc;
+                color: #0f172a;
+                font-family: 'Segoe UI', system-ui, sans-serif;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3b82f6;
+                background-color: #ffffff;
+            }
         """)
-        layout.addWidget(self.pin_input)
+        pin_group.addWidget(self.pin_input)
+        layout.addLayout(pin_group)
 
-        layout.addSpacing(int(alto * 0.03))
+        layout.addSpacing(int(alto * 0.04))
 
-        # Botón de Inicio
-        self.login_btn = PrimaryButton("Ingresar al Sistema")
-        altura_boton = int(alto * 0.075)
+        self.login_btn = PrimaryButton("  Ingresar al Sistema")
+        try:
+            self.login_btn.setIcon(qta.icon('fa5s.arrow-right', color='white'))
+        except Exception:
+            pass
+            
+        altura_boton = int(alto * 0.08)
         self.login_btn.setMinimumHeight(altura_boton)
         self.login_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        font_size_boton = int(ancho * 0.035)
-        self.login_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: #3498db;
+        
+        self.login_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2563eb;
                 color: white;
                 border: none;
-                border-radius: 6px;
-                font-size: {font_size_boton}px;
-                font-weight: bold;
+                border-radius: 10px;
+                font-size: 12pt;
+                font-weight: 700;
                 padding: 10px;
-            }}
-            QPushButton:hover {{
-                background-color: #2980b9;
-            }}
-            QPushButton:pressed {{
-                background-color: #2471a3;
-            }}
+                font-family: 'Segoe UI', system-ui, sans-serif;
+            }
+            QPushButton:hover {
+                background-color: #1d4ed8;
+            }
+            QPushButton:pressed {
+                background-color: #1e40af;
+            }
         """)
         self.login_btn.clicked.connect(self.handle_login)
         layout.addWidget(self.login_btn)
         
         layout.addStretch()
         
-        # Footer
-        footer = QLabel("Sistema de Gestión")
+        footer = QLabel("Sistema de Gestión v1.0")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font_size_footer = int(ancho * 0.028)
-        footer.setStyleSheet(f"""
-            color: #95a5a6;
-            font-size: {font_size_footer}px;
-            margin-top: 15px;
+        footer.setStyleSheet("""
+            color: #94a3b8;
+            font-size: 9pt;
+            margin-top: 10px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         """)
         layout.addWidget(footer)
 
     def centrar_ventana(self):
-        """Centra la ventana en la pantalla"""
         screen = QApplication.primaryScreen().availableGeometry()
         x = (screen.width() - self.width()) // 2
         y = (screen.height() - self.height()) // 2

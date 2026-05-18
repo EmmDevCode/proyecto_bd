@@ -5,7 +5,6 @@ from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 
 class MenuColapsable(QWidget):
     """Componente personalizado para un menú con animación de acordeón"""
-    # ---> AÑADIDO: Recibe el parámetro icono <---
     def __init__(self, titulo, icono=None, parent=None):
         super().__init__(parent)
         self.layout = QVBoxLayout(self)
@@ -17,28 +16,24 @@ class MenuColapsable(QWidget):
         # Botón toggle
         self.btn_toggle = QPushButton(f"▶  {self.titulo_base}")
         
-        # ---> AÑADIDO: Si mandaste un icono desde pantalla_admin, se lo pone <---
         if icono:
             self.btn_toggle.setIcon(icono)
             
         self.btn_toggle.setStyleSheet("""
             QPushButton {
-                color: #e2e8f0; 
+                color: #94a3b8; 
                 text-align: left; 
                 padding: 14px 20px;
                 font-weight: 600; 
                 border: none; 
                 font-size: 13px;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #2d3748, stop:1 #1a202c);
-                border-bottom: 1px solid #4a5568;
-                letter-spacing: 0.3px;
+                background-color: transparent;
+                border-radius: 8px;
+                margin: 2px 10px;
             }
             QPushButton:hover { 
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3a4a5e, stop:1 #2d3748);
-                color: #f7fafc;
-                padding-left: 24px;
+                background-color: #1e293b;
+                color: #f8fafc;
             }
         """)
         self.btn_toggle.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -47,9 +42,9 @@ class MenuColapsable(QWidget):
 
         self.area_contenido = QFrame()
         self.area_contenido.setStyleSheet("""
-            background-color: #1a202c;
-            border-left: 1px solid #4a5568;
-            margin-left: 8px;
+            background-color: transparent;
+            border-left: 2px solid #334155;
+            margin-left: 24px;
         """)
         self.layout_contenido = QVBoxLayout(self.area_contenido)
         self.layout_contenido.setContentsMargins(0, 0, 0, 0)
@@ -92,26 +87,25 @@ class Sidebar(QFrame):
         self.setObjectName("SidebarPrincipal")
         self.setStyleSheet("""
             #SidebarPrincipal {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #1a202c, stop:1 #0f1419);
-                border-right: 1px solid #2d3748;
+                background-color: #0f172a;
+                border-right: 1px solid #1e293b;
             }
             QScrollArea {
                 border: none;
                 background: transparent;
             }
             QScrollBar:vertical {
-                background: #1a202c;
-                width: 8px;
-                border-radius: 4px;
+                background: transparent;
+                width: 6px;
+                margin: 0px 0px 0px 0px;
             }
             QScrollBar::handle:vertical {
-                background: #4a5568;
-                border-radius: 4px;
+                background: #334155;
+                border-radius: 3px;
                 min-height: 20px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #718096;
+                background: #475569;
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 border: none;
@@ -137,15 +131,15 @@ class Sidebar(QFrame):
         self.lbl_header.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_header.setStyleSheet("""
             QLabel {
-                color: #f7fafc; 
-                font-size: 20px; 
-                font-weight: 700;
-                padding: 28px 10px; 
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #0f1419, stop:1 #1a202c);
-                border-bottom: 2px solid #ed8936;
-                letter-spacing: 0.5px;
+                color: #f8fafc; 
+                font-size: 22px; 
+                font-weight: 800;
+                padding: 30px 10px; 
+                background-color: #0f172a;
+                border-bottom: 1px solid #1e293b;
+                letter-spacing: 1px;
                 text-transform: uppercase;
+                font-family: 'Segoe UI', system-ui, sans-serif;
             }
         """)
         layout_principal.addWidget(self.lbl_header)
@@ -180,7 +174,6 @@ class Sidebar(QFrame):
             elif child.layout():
                 self.limpiar_layout(child.layout())
         
-        # ---> AÑADIDO: Lógica para desempaquetar la tupla (icono, texto) <---
         for clave, opciones in config_menu.items():
             
             # 1. Separamos si la clave es una tupla (icono, texto) o solo texto
@@ -215,11 +208,11 @@ class Sidebar(QFrame):
             elif child.layout():
                 self.limpiar_layout(child.layout())
 
-    # ---> AÑADIDO: El método crear_boton ahora recibe icono=None <---
     def crear_boton(self, texto, funcion, es_sub, icono=None):
         """Crea un botón con el estilo apropiado"""
         
         btn = QPushButton(f"  {texto}" if es_sub else f"  {texto}")
+        btn.setProperty("es_sub", es_sub)
         
         # Le aplicamos el icono si existe
         if icono:
@@ -228,42 +221,40 @@ class Sidebar(QFrame):
         if es_sub:
             btn.setStyleSheet("""
                 QPushButton {
-                    color: #a0aec0; 
+                    color: #94a3b8; 
                     text-align: left; 
-                    padding: 12px 15px 12px 45px;
+                    padding: 10px 15px 10px 20px;
+                    margin: 2px 10px 2px 0px;
                     border: none;
-                    font-size: 12.5px; 
+                    font-size: 13px; 
                     background-color: transparent;
-                    border-left: 2px solid transparent;
+                    border-radius: 6px;
                 }
                 QPushButton:hover { 
-                    background-color: #2d3748; 
-                    color: #f7fafc;
-                    border-left: 2px solid #ed8936;
+                    background-color: #1e293b; 
+                    color: #f8fafc;
                 }
             """)
         else:
             btn.setStyleSheet("""
                 QPushButton {
-                    color: #e2e8f0; 
+                    color: #94a3b8; 
                     text-align: left; 
                     padding: 14px 20px;
+                    margin: 2px 10px;
                     border: none;
-                    font-size: 13.5px; 
-                    font-weight: 500;
+                    font-size: 14px; 
+                    font-weight: 600;
                     background-color: transparent;
-                    border-bottom: 1px solid #2d3748;
+                    border-radius: 8px;
                     letter-spacing: 0.3px;
                 }
                 QPushButton:hover { 
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                        stop:0 #2d3748, stop:1 #1a202c);
-                    color: #ffffff;
-                    padding-left: 24px;
+                    background-color: #1e293b;
+                    color: #f8fafc;
                 }
                 QPushButton:pressed {
-                    background-color: #1a202c;
-                    padding-left: 24px;
+                    background-color: #0f172a;
                 }
             """)
         
@@ -275,44 +266,40 @@ class Sidebar(QFrame):
     def resaltar_boton(self, nombre_activo):
         """Cambia el estilo del botón seleccionado"""
         for nombre, btn in self.botones_registro.items():
+            es_sub = btn.property("es_sub")
             if nombre == nombre_activo:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #3182ce, stop:1 #2b6cb0);
-                        color: #ffffff; 
-                        text-align: left; 
-                        padding: 14px 20px;
-                        border: none;
-                        font-size: 13.5px; 
-                        font-weight: 600; 
-                        border-left: 4px solid #ed8936;
-                        letter-spacing: 0.3px;
-                        border-bottom: 1px solid #2d3748;
-                    }
-                    QPushButton:hover {
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #3182ce, stop:1 #2b6cb0);
-                        padding-left: 24px;
-                    }
-                """)
+                if es_sub:
+                    btn.setStyleSheet("""
+                        QPushButton {
+                            background-color: #3b82f6; color: #ffffff; text-align: left; 
+                            padding: 10px 15px 10px 20px; margin: 2px 10px 2px 0px;
+                            border: none; font-size: 13px; font-weight: 700; border-radius: 6px;
+                        }
+                    """)
+                else:
+                    btn.setStyleSheet("""
+                        QPushButton {
+                            background-color: #3b82f6; color: #ffffff; text-align: left; 
+                            padding: 14px 20px; margin: 2px 10px; border: none;
+                            font-size: 14px; font-weight: 700; border-radius: 8px; letter-spacing: 0.3px;
+                        }
+                    """)
             else:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        color: #e2e8f0; 
-                        text-align: left; 
-                        padding: 14px 20px;
-                        border: none;
-                        font-size: 13.5px; 
-                        font-weight: 500;
-                        background-color: transparent;
-                        border-bottom: 1px solid #2d3748;
-                        letter-spacing: 0.3px;
-                    }
-                    QPushButton:hover { 
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #2d3748, stop:1 #1a202c);
-                        color: #ffffff;
-                        padding-left: 24px;
-                    }
-                """)
+                if es_sub:
+                    btn.setStyleSheet("""
+                        QPushButton {
+                            color: #94a3b8; text-align: left; padding: 10px 15px 10px 20px;
+                            margin: 2px 10px 2px 0px; border: none; font-size: 13px; 
+                            background-color: transparent; border-radius: 6px;
+                        }
+                        QPushButton:hover { background-color: #1e293b; color: #f8fafc; }
+                    """)
+                else:
+                    btn.setStyleSheet("""
+                        QPushButton {
+                            color: #94a3b8; text-align: left; padding: 14px 20px; margin: 2px 10px;
+                            border: none; font-size: 14px; font-weight: 600;
+                            background-color: transparent; border-radius: 8px; letter-spacing: 0.3px;
+                        }
+                        QPushButton:hover { background-color: #1e293b; color: #f8fafc; }
+                    """)

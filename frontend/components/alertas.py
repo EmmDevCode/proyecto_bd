@@ -57,17 +57,23 @@ class AlertaCustom(QDialog):
         
         tema = colores.get(tipo, colores["info"])
         
-        # Contenedor principal con fondo
+        # Contenedor principal con fondo (Estilo Flat moderno)
         contenedor = QFrame(self)
         contenedor.setObjectName("contenedorAlerta")
         contenedor.setStyleSheet(f"""
             #contenedorAlerta {{
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 {tema['fondo']}, stop:1 #ffffff);
+                background-color: #ffffff;
                 border: 2px solid {tema['borde']};
                 border-radius: 16px;
             }}
         """)
+        # Agregar sombra suave al contenedor
+        from PyQt6.QtWidgets import QGraphicsDropShadowEffect
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 40))
+        shadow.setOffset(0, 4)
+        contenedor.setGraphicsEffect(shadow)
         
         layout_principal = QVBoxLayout(self)
         layout_principal.setContentsMargins(2, 2, 2, 2)
@@ -81,18 +87,18 @@ class AlertaCustom(QDialog):
         header_layout = QHBoxLayout()
         header_layout.setSpacing(12)
         
-        # Círculo con icono
+        # Círculo con icono (Fondo suave)
         circulo_icono = QLabel(tema['icono'])
         circulo_icono.setFixedSize(48, 48)
         circulo_icono.setAlignment(Qt.AlignmentFlag.AlignCenter)
         circulo_icono.setStyleSheet(f"""
             QLabel {{
-                background-color: {tema['principal']};
-                color: white;
+                background-color: {tema['fondo']};
+                color: {tema['principal']};
                 border-radius: 24px;
                 font-size: 24px;
                 font-weight: bold;
-                border: 3px solid white;
+                border: 2px solid {tema['borde']};
             }}
         """)
         header_layout.addWidget(circulo_icono)
@@ -196,24 +202,19 @@ class AlertaCustom(QDialog):
         if es_primario:
             btn.setStyleSheet(f"""
                 QPushButton {{
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 {color}, stop:1 {self.oscurecer_color(color)});
+                    background-color: {color};
                     color: white;
                     border-radius: 8px;
                     padding: 0px 24px;
-                    font-weight: 600;
+                    font-weight: 700;
                     font-size: 13px;
                     border: none;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }}
                 QPushButton:hover {{
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 {self.aclarar_color(color)}, stop:1 {color});
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                    background-color: {self.oscurecer_color(color)};
                 }}
                 QPushButton:pressed {{
-                    background: {self.oscurecer_color(color)};
-                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                    background-color: {color};
                 }}
             """)
         else:

@@ -23,25 +23,47 @@ class GenericSearchModal(QDialog):
         self.setStyleSheet("background-color: #ffffff;")
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(10)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(15)
 
         # 1. Buscador Superior
         self.search_input = FormInput(self.placeholder)
-        self.search_input.setStyleSheet("background-color: #dcdde1; padding: 12px; font-size: 14px;")
+        self.search_input.setStyleSheet("""
+            QLineEdit { 
+                background-color: #f8fafc; 
+                border: 2px solid #e2e8f0; 
+                border-radius: 8px; 
+                padding: 12px 16px; 
+                font-size: 14px; 
+                color: #334155;
+            }
+            QLineEdit:focus { 
+                border: 2px solid #3b82f6; 
+                background-color: #ffffff; 
+            }
+        """)
         self.search_input.textChanged.connect(self.perform_search)
         layout.addWidget(self.search_input)
 
         # 2. Tabla Central (Usando tu componente reutilizable)
         self.table = DataTable(self.headers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setStyleSheet("border: 1px solid #e2e8f0; border-radius: 8px;")
         # Conectar el doble clic para seleccionar
         self.table.itemDoubleClicked.connect(self.select_item)
         layout.addWidget(self.table)
 
         # 3. Footer de Resultados
         self.lbl_registros = QLabel("0 Registros encontrados")
-        self.lbl_registros.setStyleSheet("background-color: #dcdde1; padding: 8px; font-weight: bold; font-size: 12px;")
+        self.lbl_registros.setStyleSheet("""
+            background-color: #f1f5f9; 
+            color: #64748b; 
+            padding: 10px 16px; 
+            font-weight: bold; 
+            font-size: 13px; 
+            border-radius: 6px;
+        """)
+        self.lbl_registros.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_registros)
 
         self.search_input.setFocus()

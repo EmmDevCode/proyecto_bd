@@ -1,8 +1,9 @@
 # frontend/views/modulo_empleados.py
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QLineEdit, QTableWidgetItem,
-                             QDialog, QFormLayout, QComboBox)
+                             QDialog, QFormLayout, QComboBox, QPushButton)
 from PyQt6.QtCore import Qt
+import qtawesome as qta
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
 from frontend.components.elementos_ui import DataTable, BotonNuevo, BotonGuardar, BotonEditar, BadgeEstado, BotonBaja
@@ -17,27 +18,55 @@ class FormularioEmpleado(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Nuevo Empleado" if not self.empleado_id else "Editar Empleado")
-        self.setFixedWidth(400)
-        self.setStyleSheet("background-color: white; font-size: 14px;")
-        layout = QFormLayout(self)
+        self.setFixedWidth(450)
+        self.setStyleSheet("background-color: #f8fafc; font-size: 14px;")
         
-        self.input_nombre = QLineEdit()
-        self.input_usuario = QLineEdit()
-        self.input_pin = QLineEdit(); self.input_pin.setMaxLength(4)
+        layout = QFormLayout(self)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
+
+        estilo_input = """
+            QLineEdit, QComboBox { border: 2px solid #e2e8f0; border-radius: 8px; padding: 10px; background-color: white; color: #1e293b; }
+            QLineEdit:focus, QComboBox:focus { border: 2px solid #3b82f6; }
+        """
+        
+        self.input_nombre = QLineEdit(); self.input_nombre.setStyleSheet(estilo_input)
+        self.input_usuario = QLineEdit(); self.input_usuario.setStyleSheet(estilo_input)
+        self.input_pin = QLineEdit(); self.input_pin.setMaxLength(4); self.input_pin.setStyleSheet(estilo_input)
         self.input_pin.setPlaceholderText("PIN de 4 dígitos")
         
         self.combo_rol = QComboBox()
         self.combo_rol.addItems(["vendedor", "caja", "admin"])
+        self.combo_rol.setStyleSheet(estilo_input)
 
-        layout.addRow("Nombre Completo:", self.input_nombre)
-        layout.addRow("Usuario Acceso:", self.input_usuario)
-        layout.addRow("PIN de Seguridad:", self.input_pin)
-        layout.addRow("Rol del Sistema:", self.combo_rol)
+        def crear_lbl(txt):
+            l = QLabel(txt)
+            l.setStyleSheet("font-weight: bold; color: #475569;")
+            return l
 
-        btn_guardar = BotonGuardar("Guardar Empleado")
-        btn_guardar.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
+        layout.addRow(crear_lbl("Nombre Completo:"), self.input_nombre)
+        layout.addRow(crear_lbl("Usuario Acceso:"), self.input_usuario)
+        layout.addRow(crear_lbl("PIN de Seguridad:"), self.input_pin)
+        layout.addRow(crear_lbl("Rol del Sistema:"), self.combo_rol)
+
+        btn_layout = QHBoxLayout()
+        btn_guardar = BotonGuardar("  Guardar Empleado")
+        btn_guardar.setIcon(qta.icon('fa5s.save', color='white'))
+        btn_guardar.setStyleSheet("background-color: #8b5cf6; color: white; font-weight: bold; padding: 12px; border-radius: 8px; border: none;")
         btn_guardar.clicked.connect(self.guardar)
-        layout.addRow(btn_guardar)
+        
+        btn_cancelar = QPushButton("  Cancelar")
+        btn_cancelar.setIcon(qta.icon('fa5s.times', color='#64748b'))
+        btn_cancelar.setStyleSheet("""
+            QPushButton { background-color: transparent; color: #64748b; padding: 10px; font-weight: bold; border: 2px solid #e2e8f0; border-radius: 8px; }
+            QPushButton:hover { background-color: #f1f5f9; color: #334155; border: 2px solid #cbd5e1; }
+        """)
+        btn_cancelar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_cancelar.clicked.connect(self.reject)
+        
+        btn_layout.addWidget(btn_cancelar)
+        btn_layout.addWidget(btn_guardar)
+        layout.addRow(btn_layout)
 
     def cargar_datos(self):
         res = self.db.fetch_one("SELECT nombre_completo, usuario, pin, rol FROM empleados WHERE id_empleado = %s", (self.empleado_id,))
@@ -76,10 +105,24 @@ class ModuloEmpleados(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 30, 30, 30)
         header = QHBoxLayout()
-        lbl = QLabel("GESTIÓN DE PERSONAL"); lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        btn_nuevo = BotonNuevo("Alta de Empleado"); btn_nuevo.setStyleSheet("background-color: #8e44ad; color: white; padding: 10px;")
-        btn_nuevo.clicked.connect(lambda: self.abrir_formulario())
-        header.addWidget(lbl); header.addStretch(); header.addWidget(btn_nuevo)
+        
+        lbl_icono = QLabel()
+        lbl_icono.setPixmap(qta.icon('fa5s.id-badge', color='#8b5cf6').pixmap(28, 28))
+        header.addWidget(lbl_icono)
+        
+        lbl_titulo = QLabel("GESTIÓN DE PERSONAL")
+        lbl_titulo.setStyleSheet("font-size: 24px; font-weight: 800; color: #0f172a;")
+        header.addWidget(lbl_titulo)
+        
+        header.addStretch()
+        
+        self.btn_nuevo = BotonNuevo("  Alta de Empleado")
+        self.btn_nuevo.setIcon(qta.icon('fa5s.user-plus', color='white'))
+        self.btn_nuevo.setStyleSheet("background-color: #8b5cf6; color: white; font-weight: bold; padding: 12px 20px; border-radius: 8px; border: none;")
+        self.btn_nuevo.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_nuevo.clicked.connect(lambda: self.abrir_formulario())
+        header.addWidget(self.btn_nuevo)
+        
         layout.addLayout(header)
 
         self.tabla = DataTable(["ID", "Nombre", "Usuario", "Rol", "Estatus", "Acciones"])

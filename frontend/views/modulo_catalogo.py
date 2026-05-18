@@ -5,8 +5,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 from PyQt6.QtCore import Qt
 from backend.bd_conexion import DatabaseConnection
 from frontend.components.alertas import AlertaCustom
-from frontend.components.elementos_ui import BotonGuardar, BotonEditar, BotonBaja, BotonNuevo
-
+from frontend.components.elementos_ui import BotonGuardar, BotonEditar, BotonBaja, BotonNuevo, InputBuscador
+import qtawesome as qta
 
 class FormularioProducto(QDialog):
     """Modal para Alta y Edición de Productos"""
@@ -20,60 +20,102 @@ class FormularioProducto(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Nuevo Producto" if not self.producto_id else "Editar Producto")
-        self.setFixedWidth(450)
+        self.setFixedWidth(480) # Lo hice un poquito más ancho para que quepa el botón
         self.setStyleSheet("background-color: white; font-size: 14px;")
         
         layout = QFormLayout(self)
         layout.setSpacing(15)
 
-        # Campos de texto
+        # --- CAMPO DE CÓDIGO CON BOTÓN GENERADOR ---
+        ly_codigo = QHBoxLayout()
         self.input_codigo = QLineEdit()
+        self.input_codigo.setPlaceholderText("Escanee o escriba el código...")
+        
+        self.btn_generar_lt = QPushButton(" Generar LT")
+        self.btn_generar_lt.setIcon(qta.icon('fa5s.magic', color='white'))
+        self.btn_generar_lt.setStyleSheet("background-color: #8e44ad; color: white; font-weight: bold; padding: 5px 10px; border-radius: 3px;")
+        self.btn_generar_lt.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_generar_lt.clicked.connect(self.generar_codigo_interno)
+        
+        # Si estamos editando, ocultamos el botón para no cambiar el código por error
+        if self.producto_id:
+            self.btn_generar_lt.hide()
+
+        ly_codigo.addWidget(self.input_codigo)
+        ly_codigo.addWidget(self.btn_generar_lt)
+
+        # Resto de campos
         self.input_nombre = QLineEdit()
         self.input_unidad = QLineEdit()
         self.input_unidad.setPlaceholderText("Ej. Pieza, Metro, Caja")
 
-        # Campos numéricos (SpinBoxes)
         self.spin_compra = QDoubleSpinBox(); self.spin_compra.setMaximum(999999)
         self.spin_venta = QDoubleSpinBox(); self.spin_venta.setMaximum(999999)
         self.spin_mayoreo = QDoubleSpinBox(); self.spin_mayoreo.setMaximum(999999)
         self.spin_impuesto = QDoubleSpinBox(); self.spin_impuesto.setMaximum(100)
         
-        # ComboBox para Proveedores (Llave Foránea)
         self.combo_proveedor = QComboBox()
         self.cargar_proveedores()
 
         # Añadir al formulario
-        layout.addRow("Código de Articulo:", self.input_codigo)
+        layout.addRow("Código de Articulo:", ly_codigo)
         layout.addRow("Nombre / Descripción:", self.input_nombre)
         layout.addRow("Precio Compra ($):", self.spin_compra)
         layout.addRow("Precio Venta ($):", self.spin_venta)
         layout.addRow("Precio Mayoreo ($):", self.spin_mayoreo)
         layout.addRow("Impuesto (%):", self.spin_impuesto)
         layout.addRow("Unidad de Medida:", self.input_unidad)
-        layout.addRow("Proveedor:", self.combo_proveedor)
+        layout.addRow("Proveedor (Opcional):", self.combo_proveedor)
 
         # Botones
         btn_layout = QHBoxLayout()
         btn_guardar = BotonGuardar("Guardar")
-        btn_guardar.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
         btn_guardar.clicked.connect(self.guardar)
         
         btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet("background-color: #95a5a6; color: white; padding: 10px;")
+        btn_cancelar.setStyleSheet("background-color: #95a5a6; color: white; padding: 10px; border-radius: 4px;")
+        btn_cancelar.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_cancelar.clicked.connect(self.reject)
         
         btn_layout.addWidget(btn_cancelar)
         btn_layout.addWidget(btn_guardar)
         layout.addRow(btn_layout)
 
-    def cargar_proveedores(self):
-        """Llena el combo con los proveedores activos"""
+    def generar_codigo_interno(self):
+        """Busca los códigos LT en la BD y genera el siguiente sin guion"""
+        # Traemos todos los códigos que empiecen con LT (tengan guion o no)
+        query = "SELECT codigo FROM productos WHERE codigo LIKE 'LT%'"
         try:
-            # Usamos un valor por defecto por si aún no tienen proveedores
+            resultados = self.db.fetch_all(query)
+            max_num = 0
+            
+            for fila in (resultados or []):
+                codigo_actual = fila[0]
+                # Limpiamos el texto: quitamos "LT-" y "LT" para dejar solo los números
+                num_str = codigo_actual.replace("LT-", "").replace("LT", "")
+                
+                # Verificamos que lo que quedó sea un número válido
+                if num_str.isdigit():
+                    numero = int(num_str)
+                    if numero > max_num:
+                        max_num = numero
+                        
+            nuevo_numero = max_num + 1
+            
+            # Formateamos SIN guion y con 4 dígitos (ej. LT0001, LT0002)
+            nuevo_codigo = f"LT{nuevo_numero:04d}"
+            self.input_codigo.setText(nuevo_codigo)
+            
+        except Exception as e:
+            AlertaCustom.show_error(self, "Error", f"No se pudo generar el código: {e}")
+
+    def cargar_proveedores(self):
+        try:
             proveedores = self.db.fetch_all("SELECT id_proveedor, nombre FROM proveedores WHERE estatus = TRUE")
+            # Volvemos a pedir que seleccionen uno obligatoriamente
             self.combo_proveedor.addItem("-- Seleccione Proveedor --", None)
             for prov in (proveedores or []):
-                self.combo_proveedor.addItem(prov[1], prov[0]) # Texto, UserData(ID)
+                self.combo_proveedor.addItem(prov[1], prov[0])
         except Exception:
             pass
 
@@ -96,8 +138,9 @@ class FormularioProducto(QDialog):
     def guardar(self):
         cod = self.input_codigo.text().strip()
         nom = self.input_nombre.text().strip()
-        prov_id = self.combo_proveedor.currentData()
+        prov_id = self.combo_proveedor.currentData() 
 
+        # Volvemos a hacer obligatorio el proveedor
         if not cod or not nom or not prov_id:
             AlertaCustom.show_warning(self, "Campos Vacíos", "Código, Nombre y Proveedor son obligatorios.")
             return
@@ -115,7 +158,11 @@ class FormularioProducto(QDialog):
                                               self.spin_mayoreo.value(), self.spin_impuesto.value(), self.input_unidad.text(), prov_id))
             self.accept()
         except Exception as e:
-            AlertaCustom.show_error(self, "Error BD", f"Error al guardar producto: {e}")
+            # Capturamos el error de código duplicado de PostgreSQL
+            if "productos_codigo_key" in str(e):
+                AlertaCustom.show_error(self, "Código Duplicado", "Ese código de artículo ya existe en el sistema.")
+            else:
+                AlertaCustom.show_error(self, "Error BD", f"Error al guardar producto: {e}")
 
 
 class ModuloCatalogo(QWidget):
@@ -142,11 +189,9 @@ class ModuloCatalogo(QWidget):
         layout.addLayout(header_layout)
 
         # Buscador
-        self.input_buscar = QLineEdit()
-        self.input_buscar.setPlaceholderText("🔍 Buscar por código o nombre...")
-        self.input_buscar.setStyleSheet("padding: 10px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 5px;")
+        self.input_buscar = InputBuscador("Buscar por código o nombre...")
         self.input_buscar.textChanged.connect(self.cargar_tabla)
-        layout.addWidget(self.input_buscar)
+        layout.addWidget(self.input_buscar) # <-- Esto lo hace visible en pantalla
 
         # Tabla
         self.tabla = QTableWidget()

@@ -1,11 +1,10 @@
 # frontend/views/crear_orden.py
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, 
-                             QLabel, QLineEdit, QPushButton)
-from PyQt6.QtCore import Qt, QUrl
+                             QLabel, QLineEdit, QPushButton, QFrame, QInputDialog)
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QKeySequence, QShortcut
-from PyQt6.QtWebSockets import QWebSocket
-import json
 import datetime
+import qtawesome as qta
 
 from frontend.components.elementos_ui import FormInput, PrimaryButton, DataTable
 from frontend.components.carrito_manejador import CarritoManager
@@ -21,10 +20,8 @@ class CreateOrderWindow(QDialog):
         self.id_venta_actual = None
         self.modo_edicion_activo = False
         self.is_venta_especial = False
+        self.id_cliente_seleccionado = 1
         self.db = DatabaseConnection()
-        
-        self.ws_cliente = QWebSocket()
-        self.ws_cliente.open(QUrl("ws://localhost:8765"))
         
         self.init_ui()
         self.setup_shortcuts()
@@ -36,88 +33,170 @@ class CreateOrderWindow(QDialog):
         titulo = f"VISTA PREVIA ORDEN: {self.folio_editar}" if self.folio_editar else "Nueva Orden de Venta"
         self.setWindowTitle(f"{titulo} - El Tornillo Feliz")
         self.setWindowState(Qt.WindowState.WindowMaximized)
-        self.setStyleSheet("background-color: #ffffff;")
+        self.setStyleSheet("background-color: #f1f5f9;")
 
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(10)
+        main_layout.setContentsMargins(30, 30, 30, 30)
+        main_layout.setSpacing(20)
+
+        # Función auxiliar para crear tarjetas
+        def crear_tarjeta():
+            tarjeta = QFrame()
+            tarjeta.setStyleSheet("""
+                QFrame {
+                    background-color: #ffffff;
+                    border-radius: 12px;
+                    border: 1px solid #e2e8f0;
+                }
+            """)
+            from PyQt6.QtWidgets import QGraphicsDropShadowEffect
+            shadow = QGraphicsDropShadowEffect()
+            shadow.setBlurRadius(15)
+            shadow.setColor(Qt.GlobalColor.lightGray)
+            shadow.setOffset(0, 2)
+            tarjeta.setGraphicsEffect(shadow)
+            return tarjeta
 
         # ==========================================
-        # 1. TOP SECTION (Cliente, Folio y Stock)
+        # 1. TOP SECTION (Tarjetas de Cliente y Stock)
         # ==========================================
         top_layout = QHBoxLayout()
+        top_layout.setSpacing(20)
+        
+        # Tarjeta Info Cliente
+        card_info = crear_tarjeta()
+        info_layout = QVBoxLayout(card_info)
+        info_layout.setContentsMargins(20, 20, 20, 20)
+        info_layout.setSpacing(15)
+        
+        titulo_info = QLabel("DATOS DE LA ORDEN")
+        titulo_info.setStyleSheet("font-size: 11pt; font-weight: 800; color: #475569; border: none;")
+        info_layout.addWidget(titulo_info)
         
         info_grid = QGridLayout()
-        info_grid.addWidget(QLabel("<b>CLIENTE</b>"), 0, 0)
+        info_grid.setSpacing(10)
+        
+        lbl_cliente = QLabel("CLIENTE:")
+        lbl_cliente.setStyleSheet("font-weight: bold; color: #64748b; border: none;")
+        info_grid.addWidget(lbl_cliente, 0, 0)
         self.input_cliente = QLineEdit("Venta mostrador")
         self.input_cliente.setReadOnly(True)
-        self.input_cliente.setStyleSheet("background-color: #ecf0f1; padding: 5px;")
+        self.input_cliente.setStyleSheet("background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; color: #334155; font-weight: bold;")
         info_grid.addWidget(self.input_cliente, 0, 1)
 
-        info_grid.addWidget(QLabel("<b>FOLIO</b>"), 0, 2)
+        lbl_folio = QLabel("FOLIO:")
+        lbl_folio.setStyleSheet("font-weight: bold; color: #64748b; border: none;")
+        info_grid.addWidget(lbl_folio, 0, 2)
         self.input_folio = QLineEdit(self.folio_editar if self.folio_editar else "Generando...")
         self.input_folio.setReadOnly(True)
-        self.input_folio.setStyleSheet("background-color: #ecf0f1;")
+        self.input_folio.setStyleSheet("background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; color: #334155; font-weight: bold;")
         info_grid.addWidget(self.input_folio, 0, 3)
 
-        self.btn_especial = QPushButton("venta especial")
-        self.btn_especial.setStyleSheet("background-color: #e74c3c; color: white; font-weight: bold; padding: 5px;")
+        self.btn_especial = QPushButton(" Venta Especial ")
+        self.btn_especial.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_especial.setStyleSheet("""
+            QPushButton { background-color: #ef4444; color: white; border-radius: 6px; padding: 8px; font-weight: bold; }
+            QPushButton:hover { background-color: #dc2626; }
+        """)
         self.btn_especial.clicked.connect(self.toggle_venta_especial)
         info_grid.addWidget(self.btn_especial, 1, 2, 1, 2) 
 
-        top_layout.addLayout(info_grid)
-        top_layout.addStretch()
+        info_layout.addLayout(info_grid)
+        top_layout.addWidget(card_info, stretch=2)
 
-        # Tabla de Consulta de Stock
-        stock_layout = QVBoxLayout()
-        lbl_stock = QLabel("<b>CONSULTA STOCK</b>")
-        lbl_stock.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Tarjeta Consulta de Stock
+        card_stock = crear_tarjeta()
+        stock_layout = QVBoxLayout(card_stock)
+        stock_layout.setContentsMargins(20, 20, 20, 20)
+        
+        lbl_stock = QLabel("CONSULTA DE STOCK")
+        lbl_stock.setStyleSheet("font-size: 11pt; font-weight: 800; color: #475569; border: none;")
         stock_layout.addWidget(lbl_stock)
         
-        self.tabla_stock = DataTable(["ALMACEN", "CANTIDAD"])
-        self.tabla_stock.setFixedSize(300, 100)
+        self.tabla_stock = DataTable(["ALMACÉN", "CANTIDAD"])
+        self.tabla_stock.setFixedSize(300, 90)
+        self.tabla_stock.setStyleSheet("border: 1px solid #e2e8f0; border-radius: 4px;")
         stock_layout.addWidget(self.tabla_stock)
-        top_layout.addLayout(stock_layout)
+        top_layout.addWidget(card_stock, stretch=1)
         
-        main_layout.addLayout(top_layout)
+        main_layout.addLayout(top_layout, stretch=1)
 
         # ==========================================
-        # 2. BUSCADOR
+        # 2. BÚSQUEDA Y CARRITO (Tarjeta Principal)
         # ==========================================
+        card_carrito = crear_tarjeta()
+        carrito_layout = QVBoxLayout(card_carrito)
+        carrito_layout.setContentsMargins(20, 20, 20, 20)
+        carrito_layout.setSpacing(15)
+        
+        lbl_carrito = QLabel("DETALLE DE LA ORDEN")
+        lbl_carrito.setStyleSheet("font-size: 11pt; font-weight: 800; color: #475569; border: none;")
+        carrito_layout.addWidget(lbl_carrito)
+        
         self.search_input = FormInput("F2 - Buscar producto por nombre o codigo...")
+        self.search_input.setStyleSheet("""
+            QLineEdit { border: 2px solid #e2e8f0; border-radius: 8px; padding: 10px; font-size: 12pt; background-color: #f8fafc; }
+            QLineEdit:focus { border: 2px solid #3b82f6; background-color: #ffffff; }
+        """)
         self.search_input.returnPressed.connect(self.procesar_busqueda)
-        main_layout.addWidget(self.search_input)
+        carrito_layout.addWidget(self.search_input)
 
-        # ==========================================
-        # 3. CARRITO MANAGER
-        # ==========================================
         self.carrito_manager = CarritoManager()
+        self.carrito_manager.setStyleSheet("border: none;")
         # Conectamos el clic de la tabla del carrito para que consulte el stock arriba
         self.carrito_manager.tabla.itemSelectionChanged.connect(self.consultar_stock_seleccion)
-        main_layout.addWidget(self.carrito_manager)
+        carrito_layout.addWidget(self.carrito_manager)
+        
+        main_layout.addWidget(card_carrito, stretch=5)
 
         # ==========================================
-        # 4. FOOTER Y BOTONES
+        # 4. FOOTER Y BOTONES (Tarjeta Inferior)
         # ==========================================
-        footer = QHBoxLayout()
-        btn_cancelar = PrimaryButton("CANCELAR")
-        btn_cancelar.setStyleSheet("background-color: #e74c3c; padding: 10px 20px;")
+        card_footer = crear_tarjeta()
+        card_footer.setStyleSheet("""
+            QFrame { background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; border-top: 4px solid #3b82f6; }
+        """)
+        footer = QHBoxLayout(card_footer)
+        footer.setContentsMargins(20, 15, 20, 15)
+        
+        btn_cancelar = QPushButton("  CANCELAR")
+        btn_cancelar.setIcon(qta.icon('fa5s.times', color='white'))
+        btn_cancelar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_cancelar.setStyleSheet("""
+            QPushButton { background-color: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 10pt; }
+            QPushButton:hover { background-color: #dc2626; }
+        """)
         btn_cancelar.clicked.connect(self.reject)
         
-        self.btn_editar = PrimaryButton("✏️ EDITAR ORDEN")
-        self.btn_editar.setStyleSheet("background-color: #f39c12; padding: 10px 20px;")
+        self.btn_editar = QPushButton("  EDITAR ORDEN")
+        self.btn_editar.setIcon(qta.icon('fa5s.edit', color='white'))
+        self.btn_editar.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_editar.setStyleSheet("""
+            QPushButton { background-color: #f59e0b; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 10pt; }
+            QPushButton:hover { background-color: #d97706; }
+        """)
         self.btn_editar.clicked.connect(self.desbloquear_edicion)
         self.btn_editar.hide()
 
-        self.btn_enviar = PrimaryButton("ENVIAR A CAJA F3")
-        self.btn_enviar.setStyleSheet("padding: 10px 20px;")
+        self.btn_enviar = QPushButton("  ENVIAR A CAJA (F3)")
+        self.btn_enviar.setIcon(qta.icon('fa5s.paper-plane', color='white'))
+        self.btn_enviar.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_enviar.setStyleSheet("""
+            QPushButton { background-color: #3b82f6; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 800; font-size: 11pt; }
+            QPushButton:hover { background-color: #2563eb; }
+            QPushButton:pressed { background-color: #1d4ed8; }
+        """)
         self.btn_enviar.clicked.connect(self.generate_order)
 
         footer.addWidget(btn_cancelar)
-        footer.addStretch()
+        footer.addStretch() 
+        
+        footer.addWidget(self.carrito_manager.lbl_total, alignment=Qt.AlignmentFlag.AlignVCenter)
+        footer.addSpacing(20) 
+        
         footer.addWidget(self.btn_editar)
         footer.addWidget(self.btn_enviar)
-        main_layout.addLayout(footer)
+        main_layout.addWidget(card_footer)
 
     def setup_shortcuts(self):
         self.shortcut_f2 = QShortcut(QKeySequence(Qt.Key.Key_F2), self)
@@ -129,19 +208,20 @@ class CreateOrderWindow(QDialog):
         self.is_venta_especial = not self.is_venta_especial
         if self.is_venta_especial:
             self.input_cliente.setReadOnly(False)
-            self.input_cliente.setStyleSheet("background-color: #ffffff; padding: 5px;")
+            self.input_cliente.setStyleSheet("background-color: #ffffff; border: 2px solid #3b82f6; border-radius: 6px; padding: 8px; color: #334155; font-weight: bold;")
             self.input_cliente.setText("")
             self.input_cliente.setPlaceholderText("Buscar cliente...")
             self.input_cliente.setFocus()
-            self.btn_especial.setStyleSheet("background-color: #27ae60; color: white; font-weight: bold; padding: 5px;")
-            self.btn_especial.setText("venta mostrador")
+            self.btn_especial.setStyleSheet("QPushButton { background-color: #10b981; color: white; border-radius: 6px; padding: 8px; font-weight: bold; } QPushButton:hover { background-color: #059669; }")
+            self.btn_especial.setText("Venta Mostrador")
             self.abrir_buscador_clientes()
         else:
+            self.id_cliente_seleccionado = 1
             self.input_cliente.setReadOnly(True)
-            self.input_cliente.setStyleSheet("background-color: #ecf0f1; padding: 5px;")
+            self.input_cliente.setStyleSheet("background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; color: #334155; font-weight: bold;")
             self.input_cliente.setText("Venta mostrador")
-            self.btn_especial.setStyleSheet("background-color: #e74c3c; color: white; font-weight: bold; padding: 5px;")
-            self.btn_especial.setText("venta especial")
+            self.btn_especial.setStyleSheet("QPushButton { background-color: #ef4444; color: white; border-radius: 6px; padding: 8px; font-weight: bold; } QPushButton:hover { background-color: #dc2626; }")
+            self.btn_especial.setText("Venta Especial")
 
     def abrir_buscador_clientes(self):
         def query_cl(b):
@@ -151,11 +231,15 @@ class CreateOrderWindow(QDialog):
         modal = GenericSearchModal("Buscar Cliente", "RFC o nombre...", ["RFC", "NOMBRE", "ID"], query_cl, self)
         if modal.exec():
             self.input_cliente.setText(modal.selected_data[1])
+            self.id_cliente_seleccionado = modal.selected_data[2]
+        else:
+            self.toggle_venta_especial()
 
     def cargar_datos_para_edicion(self):
         try:
+            # AQUÍ YA PEDIMOS LA COLUMNA cliente_temporal A LA BD
             query = """
-                SELECT v.id_venta, c.nombre_completo, v.fecha, TO_CHAR(v.hora, 'HH24:MI'), v.estatus
+                SELECT v.id_venta, c.nombre_completo, v.fecha, TO_CHAR(v.hora, 'HH24:MI'), v.estatus, v.cliente_temporal, v.id_cliente
                 FROM orden_venta v
                 JOIN clientes c ON v.id_cliente = c.id_cliente
                 WHERE v.folio = %s
@@ -163,8 +247,13 @@ class CreateOrderWindow(QDialog):
             res = self.db.fetch_one(query, (self.folio_editar,))
             if not res: return
             
-            self.id_venta_actual, cliente, fecha, hora, estatus = res
-            self.input_cliente.setText(cliente)
+            self.id_venta_actual, cliente, fecha, hora, estatus, cte_temp, id_cliente = res
+            self.id_cliente_seleccionado = id_cliente
+            
+            if cte_temp and cte_temp != 'MOSTRADOR':
+                self.input_cliente.setText(f"{cliente} ({cte_temp})")
+            else:
+                self.input_cliente.setText(cliente)
 
             query_det = """
                 SELECT p.id_producto, p.codigo, p.nombre, d.cantidad, d.descuento, d.precio_unitario, d.subtotal
@@ -184,7 +273,6 @@ class CreateOrderWindow(QDialog):
             
             self.carrito_manager.cargar_carrito_existente(carrito_lista)
             
-            # Bloqueo
             self.search_input.setEnabled(False)
             self.btn_enviar.setEnabled(False)
             self.btn_especial.setEnabled(False)
@@ -203,8 +291,8 @@ class CreateOrderWindow(QDialog):
         self.setWindowTitle(f"EDITANDO ORDEN: {self.folio_editar}")
         self.search_input.setEnabled(True)
         self.btn_enviar.setEnabled(True)
-        self.btn_enviar.setText("GUARDAR CAMBIOS F3")
-        self.btn_enviar.setStyleSheet("background-color: #27ae60; padding: 10px 20px;")
+        self.btn_enviar.setText("  GUARDAR CAMBIOS (F3)")
+        self.btn_enviar.setStyleSheet("QPushButton { background-color: #10b981; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 800; font-size: 11pt; } QPushButton:hover { background-color: #059669; }")
         self.btn_editar.hide()
         self.carrito_manager.desbloquear_edicion()
         AlertaCustom.show_info(self, "Edición Habilitada", "Ya puedes modificar la orden.")
@@ -214,6 +302,20 @@ class CreateOrderWindow(QDialog):
         if not productos:
             AlertaCustom.show_error(self, "Carrito Vacío", "No hay productos en la orden.")
             return
+
+        nombre_ticket = ""
+        if self.id_cliente_seleccionado == 1 and not self.modo_edicion_activo: 
+            modal = NombreTemporalModal(self)
+            if modal.exec():
+                texto = modal.nombre_capturado
+                if texto.strip():
+                    nombre_ticket = texto.strip().upper()
+                else:
+                    nombre_ticket = "MOSTRADOR"
+            else:
+                nombre_ticket = "MOSTRADOR"
+        else:
+            nombre_ticket = "MOSTRADOR" # Si es venta especial, no sobreescribimos la BD con texto sucio
 
         try:
             now = datetime.datetime.now()
@@ -227,18 +329,21 @@ class CreateOrderWindow(QDialog):
                 folio_final = self.folio_editar
             else:
                 folio_final = f"OV-{now.strftime('%Y%m%d%H%M%S')}"
+                # AQUÍ YA ESTÁ AGREGADA LA COLUMNA cliente_temporal
                 query_ins = """
-                    INSERT INTO orden_venta (folio, id_vendedor, fecha, hora, id_cliente, total, estatus) 
-                    VALUES (%s, %s, %s, %s, %s, %s, 'Pendiente') RETURNING id_venta
+                    INSERT INTO orden_venta (folio, id_vendedor, fecha, hora, id_cliente, cliente_temporal, total, estatus) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pendiente') RETURNING id_venta
                 """
-                id_final = self.db.fetch_one(query_ins, (folio_final, self.user_data['id'], now.date(), hora_limpia, 1, total))[0]
+                id_final = self.db.fetch_one(query_ins, (folio_final, self.user_data['id'], now.date(), hora_limpia, self.id_cliente_seleccionado, nombre_ticket, total))[0]
 
             query_det = "INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, descuento, subtotal) VALUES (%s, %s, %s, %s, %s, %s)"
             for p in productos:
                 self.db.execute_query(query_det, (id_final, p['id'], p['cant'], p['precio'], p['desc'], p['subtotal']))
 
-            self.ws_cliente.sendTextMessage(json.dumps({"tipo": "NUEVA_ORDEN", "folio": folio_final, "vendedor": self.user_data['nombre'], "total": total}))
-            AlertaCustom.show_success(self, "Éxito", f"Orden {folio_final} generada y enviada a caja.")
+            # Variables para que pantalla_vendedor las lea
+            self.folio_generado = folio_final
+            
+            AlertaCustom.show_success(self, "Éxito", f"Orden {folio_final} enviada a caja.\n\nCliente/Seña: {nombre_ticket}")
             self.accept()
             
         except Exception as e:
@@ -272,11 +377,9 @@ class CreateOrderWindow(QDialog):
             self.agregar_por_codigo_directo(modal.selected_data[0])
 
     def consultar_stock_seleccion(self):
-        """Consulta el stock del producto que seleccionaste en el carrito"""
         current_row = self.carrito_manager.tabla.currentRow()
         if current_row < 0: return
 
-        # Obtenemos el ID del producto desde la lista interna del manager
         id_prod = self.carrito_manager.productos[current_row]['id']
 
         query_stock = """
@@ -298,3 +401,73 @@ class CreateOrderWindow(QDialog):
             event.ignore()
         else:
             super().keyPressEvent(event)
+
+class NombreTemporalModal(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.nombre_capturado = ""
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("Identificar Cliente")
+        self.setFixedWidth(400)
+        self.setStyleSheet("background-color: #ffffff; border-radius: 8px;")
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
+        
+        # Icono + Título
+        header = QHBoxLayout()
+        icono = QLabel()
+        icono.setPixmap(qta.icon('fa5s.user-tag', color='#3b82f6').pixmap(32, 32))
+        
+        lbl_titulo = QLabel("Identificar Cliente")
+        lbl_titulo.setStyleSheet("font-size: 18px; font-weight: 800; color: #0f172a;")
+        
+        header.addWidget(icono)
+        header.addWidget(lbl_titulo)
+        header.addStretch()
+        layout.addLayout(header)
+        
+        # Subtítulo
+        lbl_sub = QLabel("Nombre del cliente o seña particular para su ticket:\n(Opcional, presiona Enter para omitir)")
+        lbl_sub.setStyleSheet("font-size: 13px; color: #64748b;")
+        layout.addWidget(lbl_sub)
+        
+        # Input
+        self.input_nombre = QLineEdit()
+        self.input_nombre.setPlaceholderText("Ej: Joven gorra roja, Doña María...")
+        self.input_nombre.setStyleSheet("""
+            QLineEdit { border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 14px; background-color: #f8fafc; color: #1e293b; }
+            QLineEdit:focus { border: 2px solid #3b82f6; background-color: #ffffff; }
+        """)
+        self.input_nombre.returnPressed.connect(self.aceptar)
+        layout.addWidget(self.input_nombre)
+        
+        # Botones
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        
+        btn_omitir = QPushButton("  Omitir")
+        btn_omitir.setIcon(qta.icon('fa5s.forward', color='#64748b'))
+        btn_omitir.setStyleSheet("""
+            QPushButton { background-color: transparent; color: #64748b; padding: 10px 20px; font-weight: bold; border: 2px solid #e2e8f0; border-radius: 8px; }
+            QPushButton:hover { background-color: #f1f5f9; color: #334155; border: 2px solid #cbd5e1; }
+        """)
+        btn_omitir.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_omitir.clicked.connect(self.reject)
+        
+        btn_guardar = QPushButton("  Continuar")
+        btn_guardar.setIcon(qta.icon('fa5s.check', color='white'))
+        btn_guardar.setStyleSheet("background-color: #3b82f6; color: white; font-weight: bold; padding: 12px 24px; border-radius: 8px; border: none;")
+        btn_guardar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_guardar.clicked.connect(self.aceptar)
+        
+        btn_layout.addWidget(btn_omitir)
+        btn_layout.addWidget(btn_guardar)
+        layout.addLayout(btn_layout)
+
+    def aceptar(self):
+        self.nombre_capturado = self.input_nombre.text().strip()
+        self.accept()
